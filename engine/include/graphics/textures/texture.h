@@ -32,10 +32,11 @@ namespace flow {
             // mipmap levels
             int32_t maxDim = (m_Width > m_Height) ? m_Width : m_Height;
             int32_t levels = static_cast<int32_t>(std::floor(std::log2(maxDim))) + 1;
-            glCreateTextures(GL_TEXTURE_2D, 1, &m_ID);
+
+            glCreateTextures(GL_TEXTURE_2D, levels, &m_ID);
 
             if (isHDR) {
-                glTextureStorage2D(m_ID, 1, GL_RGB16F, m_Width, m_Height);
+                glTextureStorage2D(m_ID, levels, GL_RGB16F, m_Width, m_Height);
                 glTextureSubImage2D(m_ID, 0, 0, 0, m_Width, m_Height,
                     channels == 4 ? GL_RGBA : GL_RGB, GL_FLOAT, pixels);
             }

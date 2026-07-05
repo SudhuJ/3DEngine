@@ -10,7 +10,7 @@ namespace flow {
 
     struct flatVertex {
         glm::vec3 Position = glm::vec3(0.0f);
-        glm::vec4 Color = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        glm::vec4 Color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     };
 
     struct shadedVertex {

@@ -9,7 +9,6 @@ namespace flow {
 
         FLOW_INLINE uint32_t Generate(int32_t size) {
             uint32_t BRDFMap = -1;
-
             glCreateTextures(GL_TEXTURE_2D, 1, &BRDFMap);
             glTextureStorage2D(BRDFMap, 1, GL_RG16F, size, size);
 

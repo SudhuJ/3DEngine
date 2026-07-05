@@ -16,7 +16,7 @@ uniform mat4 u_view;
 
 void main() {
     v_Position = (u_model * vec4(a_Position, 1.0)).xyz;
-    v_Normal = (u_model * vec4(a_Normal, 1.0)).xyz;
+    v_Normal = transpose(inverse(mat3(u_model))) * a_Normal
     v_TBNs = mat3(u_model) * mat3(a_Tangent, a_Bitangent, a_Normal);
     v_UVs = a_UVs;
 
