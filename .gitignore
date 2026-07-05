@@ -1,0 +1,21 @@
+# Build outputs
+Targets/
+bin/
+lib/
+build*/
+cmake-build*/
+
+# Conan / virtual env
+flow/
+
+# IDE / editor
+CMakeUserPresets.json
+compile_commands.json
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
