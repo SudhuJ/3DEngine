@@ -19,68 +19,46 @@ namespace flow {
         }
 
         FLOW_INLINE void runContext(){
-            // load textures
-            auto albedo = std::make_shared<texture2D>("resources/textures/Metal027_1K-JPG/Color.jpg");
-            auto roughness = std::make_shared<texture2D>("resources/textures/Metal027_1K-JPG/Roughness.jpg");
-            auto metallic = std::make_shared<texture2D>("resources/textures/Metal027_1K-JPG/Metalness.jpg");
-            auto normal = std::make_shared<texture2D>("resources/textures/Metal027_1K-JPG/NormalGL.jpg");
+
+            auto skymap = std::make_shared<texture2D>();
+            skymap->Load("resources/textures/sky.hdr", true);
 
             // load models
             auto sphereModel = std::make_shared<Model>("resources/models/sphere.fbx");
+            auto cubeModel = std::make_shared<Model>("resources/models/cube.fbx");
 
             // create scene camera
             auto camera = createEntt<Entity>();
             camera.Attach<transformComponent>().Transform.Translate.z = 3.0f;
             camera.Attach<cameraComponent>();
-            FLOW_INFO("camera created");
-            // skybox
-            auto skymap = std::make_shared<texture2D>();
-            skymap->Load("resources/textures/qwantani_dusk_2_puresky_1k.hdr", true);
+
+            // skybox entity
             auto skybox = createEntt<Entity>();
             skybox.Attach<transformComponent>();
             skybox.Attach<skyboxComponent>();
 
             // create direct light
             auto dlight = createEntt<Entity>();
-            dlight.Attach<directLightComponent>();
-            auto& dtp = dlight.Attach<transformComponent>().Transform;
-            dtp.Rotate = glm::vec3(0.0f, 0.0f, -1.0f);
-            dtp.Translate.z = -1.0f;
-            FLOW_INFO("direct light created");
+            dlight.Attach<directLightComponent>().Light.Intensity = 5.0f;
+            auto& stp = dlight.Attach<transformComponent>().Transform;
+            stp.Rotate = glm::vec3(0.0f);
 
-            // create spot light
-            auto slight = createEntt<Entity>();
-            auto& slComponent = slight.Attach<spotLightComponent>();
-            slComponent.Light.Radiance = glm::vec3(1.0f, 1.0f, 1.0f); // Pure white light
-            slComponent.Light.Intensity = 15.0f;                      // High intensity to see it easily
-
-            // FIX: Set explicit cone angles (in cosines or degrees, matching what your struct expects)
-            // Assuming standard cosines: Inner cone 15 degrees, Outer cone 25 degrees
-            slComponent.Light.Cutoff = 15.0f;
-            slComponent.Light.Falloff = 25.0f;
-
-            auto& sp = slight.Attach<transformComponent>().Transform;
-            // Position the spotlight slightly above and in front of the object, looking down at it
-            sp.Translate = glm::vec3(0.0f, 2.0f, 2.0f);
-            sp.Rotate = glm::vec3(-45.0f, 0.0f, 0.0f); // Tilted 45 degrees downward
-
-
-            // create entity with model
-            auto cube = createEntt<Entity>();
-            cube.Attach<transformComponent>().Transform.Translate.z = 0.0f;
-            auto& mod = cube.Attach<modelComponent>();
+            // create sphere entity
+            auto sphere = createEntt<Entity>();
+            auto& mod = sphere.Attach<modelComponent>();
             mod.Model = sphereModel;
+            mod.Material.Emissive = glm::vec3(1.0f);
+            mod.Material.Albedo = glm::vec3(0.8f, 0.1f, 0.8f);
+            sphere.Attach<transformComponent>().Transform.Translate.x = -1.0f;
 
-            mod.Material.Albedo   = glm::vec3(1.0f);
-            mod.Material.Metallic = 0.5f;
-            mod.Material.Roughness = 0.25f;
+            // create cube entity
+            auto cube = createEntt<Entity>();
+            auto& mod1 = cube.Attach<modelComponent>();
+            mod1.Model = cubeModel;
+            mod1.Material.Albedo = glm::vec3(0.1f, 0.0f, 0.5f);
+            cube.Attach<transformComponent>().Transform.Translate.x = 1.0f;
 
-            mod.Material.RoughnessMap = roughness;
-            mod.Material.AlbedoMap = albedo;
-            mod.Material.NormalMap = normal;
-
-            enttView<Entity, skyboxComponent>([this, &skymap] (auto entity, auto& comp)
-            {
+            enttView<Entity, skyboxComponent>([this, &skymap] (auto entity, auto& comp) {
                 m_Context->Renderer->InitSkybox(comp.Sky, skymap, 2048);
                 m_Context->Renderer->setIBL(comp.Sky);
             });
@@ -118,7 +96,6 @@ namespace flow {
                 enttView<Entity, cameraComponent>([this](auto entity, auto& comp) {
                     auto& transform = entity.template Get<transformComponent>().Transform;
                     m_Context->Renderer->setCamera(comp.Camera, transform);
-                    // transform.Rotate.y += 1.0f;
                 });
 
                 enttView<Entity, modelComponent>([this](auto entity, auto& comp) {
@@ -126,7 +103,6 @@ namespace flow {
                     m_Context->Renderer->Draw(comp.Model, comp.Material, transform);
                     transform.Rotate.y += 1.0f;
                 });
-
 
                 enttView<Entity, skyboxComponent>([this](auto entity, auto& comp) {
                     auto& transform = entity.template Get<transformComponent>().Transform;
@@ -149,10 +125,9 @@ namespace flow {
                 enttView<Entity, directLightComponent>([this](auto light, auto&) {
                     auto& lightDir = light.template Get<transformComponent>().Transform.Rotate;
                     m_Context->Renderer->beginShadowPass(lightDir);
-                    enttView<Entity, modelComponent>([this, &lightDir] (auto entity, auto& comp)
-                    {
-                    auto& transform = entity.template Get<transformComponent>().Transform;
-                    m_Context->Renderer->drawDepth(comp.Model, transform);
+                    enttView<Entity, modelComponent>([this, &lightDir] (auto entity, auto& comp) {
+                        auto& transform = entity.template Get<transformComponent>().Transform;
+                        m_Context->Renderer->drawDepth(comp.Model, transform);
                     });
                     m_Context->Renderer->endShadowPass();
                 });

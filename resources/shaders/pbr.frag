@@ -5,7 +5,9 @@ layout(location = 2) in vec2 v_UVs;
 layout(location = 3) in mat3 v_TBNs;
 
 layout(location = 0) out vec4 out_fragment;
+layout(location = 1) out vec4 out_brightness;
 
+const vec3 BLOOM_THRESHOLD = vec3(0.2126, 0.7152, 0.0722); // relative luminance
 #define PI 3.14159265358979323846
 #define MAX_LIGHTS 10
 
@@ -239,6 +241,12 @@ void main() {
 
     vec3 result = ambient + (1.0 - computeShadow()) * direct;
     result = result * occlusion + emissive;
+
+    if (dot(result, BLOOM_THRESHOLD) > 1.0) {
+        out_brightness = vec4(result, 1.0);
+    } else {
+        out_brightness = vec4(0.0, 0.0, 0.0, 1.0);
+    }
 
     out_fragment = vec4(result, 1.0);
 }

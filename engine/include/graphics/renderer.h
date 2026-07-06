@@ -14,6 +14,7 @@
 #include "graphics/utilities/data.h"
 #include "graphics/utilities/skybox.h"
 #include "graphics/models/model.h"
+#include "graphics/shaders/bloom.h"
 #include "buffers/frame.h"
 
 namespace flow {
@@ -36,6 +37,7 @@ namespace flow {
             m_SkyMap = std::make_unique<SkyMapShader>("resources/shaders/skymap.vert", "resources/shaders/skymap.frag");
             m_Skybox = std::make_unique<SkyboxShader>("resources/shaders/skybox.vert", "resources/shaders/skybox.frag");
             m_Irrad = std::make_unique<IrradianceShader>("resources/shaders/irradiance.vert", "resources/shaders/irradiance.frag");
+            m_Bloom = std::make_unique<BloomShader>("resources/shaders/bloom.vert", "resources/shaders/bloom.frag", width, height);
             m_SkyboxMesh = createSkyboxMesh();
         }
 
@@ -60,6 +62,10 @@ namespace flow {
             m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap, m_Shadow->getDepthmap());
         }
 
+        FLOW_INLINE void processBloom() {
+            m_Bloom->Apply(m_Frame->getBrightnessTexture());
+        }
+
         FLOW_INLINE void DrawSkybox(Skybox& sky, transform3D& transform) {
             m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap, m_Shadow->getDepthmap());
             m_Skybox->Draw(m_SkyboxMesh, sky.m_CubeMap, transform);
@@ -79,6 +85,7 @@ namespace flow {
             auto lightSpaceMatrix = glm::mat4(proj * view);
             m_PBR->Bind();
             m_PBR->setLightSpaceMatrix(lightSpaceMatrix);
+            m_Shadow->beginFrame(lightSpaceMatrix);
         }
 
         FLOW_INLINE void endShadowPass() {
@@ -101,10 +108,13 @@ namespace flow {
         FLOW_INLINE void endFrame() {
             m_PBR->Unbind();
             m_Frame->End();
+            processBloom();
+            m_Final->Show(m_Frame->getTexture(), m_Bloom->getMap());
         }
 
         FLOW_INLINE void showFrame() {
-            m_Final->Show(m_Frame->getTexture());
+            glViewport(0, 0, m_Frame->getWidth(), m_Frame->getHeight());
+            m_Final->Show(m_Frame->getTexture(), m_Bloom->getMap());
         }
 
         FLOW_INLINE void Draw(model3D& model, PBRMaterial& material, transform3D& transform) {
@@ -146,6 +156,7 @@ namespace flow {
             std::unique_ptr<BRDFShader> m_BRDF;
             std::unique_ptr<PrefilteredShader> m_Prefil;
             std::unique_ptr<ShadowShader> m_Shadow;
+            std::unique_ptr<BloomShader> m_Bloom;
             skyboxMesh m_SkyboxMesh;
     };
 }

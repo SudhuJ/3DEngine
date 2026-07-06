@@ -8,10 +8,11 @@ namespace flow {
             glCreateFramebuffers(1, &m_BufferID);
 
             createColorAttachment();
+            createBrightnessAttachment();
             createRenderAttachment();
 
-            uint32_t attachments[1] = { GL_COLOR_ATTACHMENT0 };
-            glNamedFramebufferDrawBuffers(m_BufferID, 1, attachments);
+            uint32_t attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+            glNamedFramebufferDrawBuffers(m_BufferID, 2, attachments);
 
             if (glCheckNamedFramebufferStatus(m_BufferID, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
                 FLOW_ERROR("glCheckNamedFramebufferStatus() Failed after Resize.");
@@ -20,8 +21,17 @@ namespace flow {
 
         FLOW_INLINE ~frameBuffer() {
             glDeleteTextures(1, &m_Color);
+            glDeleteTextures(1, &m_Brightness);
             glDeleteRenderbuffers(1, &m_Render);
             glDeleteFramebuffers(1, &m_BufferID);
+        }
+
+        FLOW_INLINE uint32_t getWidth() const {
+            return m_Width;
+        }
+
+        FLOW_INLINE uint32_t getHeight() const {
+            return m_Height;
         }
 
         FLOW_INLINE float Ratio() {
@@ -33,14 +43,20 @@ namespace flow {
             m_Height = height;
 
             glDeleteTextures(1, &m_Color);
+            glDeleteTextures(1, &m_Brightness);
             glDeleteRenderbuffers(1, &m_Render);
 
             createColorAttachment();
+            createBrightnessAttachment();
             createRenderAttachment();
         }
 
         FLOW_INLINE uint32_t getTexture() {
             return m_Color;
+        }
+
+        FLOW_INLINE uint32_t getBrightnessTexture() {
+            return m_Brightness;
         }
 
         FLOW_INLINE void Begin() {
@@ -69,6 +85,16 @@ namespace flow {
                 glNamedFramebufferTexture(m_BufferID, GL_COLOR_ATTACHMENT0, m_Color, 0);
             }
 
+            FLOW_INLINE void createBrightnessAttachment() {
+                glCreateTextures(GL_TEXTURE_2D, 1, &m_Brightness);
+                glTextureParameteri(m_Brightness, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTextureParameteri(m_Brightness, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTextureParameteri(m_Brightness, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTextureParameteri(m_Brightness, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTextureStorage2D(m_Brightness, 1, GL_RGB16F, m_Width, m_Height);
+                glNamedFramebufferTexture(m_BufferID, GL_COLOR_ATTACHMENT1, m_Brightness, 0);
+            }
+
             FLOW_INLINE void createRenderAttachment() {
                 glCreateRenderbuffers(1, &m_Render);
                 glNamedRenderbufferStorage(m_Render, GL_DEPTH_COMPONENT24, m_Width, m_Height);
@@ -78,6 +104,7 @@ namespace flow {
             uint32_t m_Width = 0u;
             uint32_t m_Height = 0u;
             uint32_t m_Color = 0u;
+            uint32_t m_Brightness = 0u;
             uint32_t m_Render = 0u;
             uint32_t m_BufferID = 0u;
     };

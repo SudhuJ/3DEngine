@@ -25,7 +25,7 @@ namespace flow {
                 pixels = stbi_load(path.c_str(), &m_Width, &m_Height, nullptr, 4);
             }
             if (!pixels) {
-                FLOW_ERROR("Failed to load texture.");
+                FLOW_ERROR("Failed to load texture: {}.", path);
                 return false;
             }
 
