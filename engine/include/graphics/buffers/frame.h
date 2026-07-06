@@ -13,8 +13,8 @@ namespace flow {
             uint32_t attachments[1] = { GL_COLOR_ATTACHMENT0 };
             glNamedFramebufferDrawBuffers(m_BufferID, 1, attachments);
 
-            if (glCheckNamedFramebufferStatus(m_BufferID, GL_FRAMEBUFFER)    != GL_FRAMEBUFFER_COMPLETE) {
-                FLOW_ERROR("glCheckNamedFramebufferStatus() Failed.");
+            if (glCheckNamedFramebufferStatus(m_BufferID, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                FLOW_ERROR("glCheckNamedFramebufferStatus() Failed after Resize.");
             }
         }
 
@@ -46,7 +46,7 @@ namespace flow {
         FLOW_INLINE void Begin() {
             glBindFramebuffer(GL_FRAMEBUFFER, m_BufferID);
             glViewport(0, 0, m_Width, m_Height);
-            glClearColor(0.0, 0.0, 0.0, 1);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);

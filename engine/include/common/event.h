@@ -4,12 +4,9 @@
 namespace flow{
     template <typename Event>
     struct eventListener {
-        // type alias using callbackFn; std::function<void (const Event&)>
-        // allows to store a function pointer or lambda or class member as a callback
         using callbackFn = std::function<void (const Event&)>;
         FLOW_INLINE eventListener(callbackFn&& callback, uint32_t listenerID):
             callback(std::move(callback)), ID(listenerID) {}
-
 
         callbackFn callback;
         uint32_t ID;
@@ -20,21 +17,35 @@ namespace flow{
         }
     };
 
-    // event registry
-    template <typename Event> struct eventRegistry {
+    struct eventRegistryBase {
+        virtual ~eventRegistryBase() = default;
+        virtual void poll() = 0;
+        virtual void erase(uint32_t listenerID) = 0;
+    };
+
+    template <typename Event>
+    struct eventRegistry : eventRegistryBase {
         using listener = std::unique_ptr<eventListener<Event>>;
         std::queue<std::unique_ptr<Event>> Queue;
         std::vector<listener> Listeners;
-    };
 
-    // event dispatcher
-    struct eventDispatcher {
-        FLOW_INLINE ~eventDispatcher() {
-            for (auto& [_, ptr] : m_Registry) {
-                auto registry = castRegistry<char>(ptr);
-                FLOW_DELETE(registry);
+        FLOW_INLINE void poll() override {
+            while (!Queue.empty()) {
+                for (auto& l : Listeners)
+                    l->callback(*Queue.front());
+                Queue.pop();
             }
         }
+
+        FLOW_INLINE void erase(uint32_t listenerID) override {
+            Listeners.erase(std::remove_if(Listeners.begin(), Listeners.end(), [&](auto& l) {
+                return l->ID == listenerID;
+            }), Listeners.end());
+        }
+    };
+
+    struct eventDispatcher {
+        FLOW_INLINE ~eventDispatcher() = default;
 
         template <typename Event, typename Callback>
         FLOW_INLINE void attachCallback(Callback&& callback, uint32_t listenerID) {
@@ -43,7 +54,7 @@ namespace flow{
         }
 
         template <typename Event>
-        FLOW_INLINE void detachCallback(uint32_t listenerID){
+        FLOW_INLINE void detachCallback(uint32_t listenerID) {
             auto& listeners = getRegistry<Event>()->Listeners;
             listeners.erase(std::remove_if(listeners.begin(), listeners.end(), [&](auto& listener){
                 return listener->ID == listenerID;
@@ -52,21 +63,15 @@ namespace flow{
         }
 
         FLOW_INLINE void eraseListener(uint32_t listenerID) {
-            for (auto& [_, registry] : m_Registry) {
-                auto& listeners = castRegistry<int8_t>(registry)->Listeners;
-                listeners.erase(std::remove_if(listeners.begin(), listeners.end(), [&](auto& listener){
-                    return listener->ID == listenerID;
-                }),
-                listeners.end());
-            }
+            for (auto& [_, reg] : m_Registry)
+                reg->erase(listenerID);
         }
 
         template <typename Event, typename... Args>
         FLOW_INLINE void postEvent(Args&&... args) {
             auto registry = getRegistry<Event>();
-            if (registry->Listeners.empty()){
-            return;
-            }
+            if (registry->Listeners.empty())
+                return;
             registry->Queue.push(std::make_unique<Event>(std::forward<Args>(args)...));
         }
 
@@ -76,17 +81,8 @@ namespace flow{
         }
 
         FLOW_INLINE void pollEvents() {
-            // persistent callbacks
-            for (auto& [_, pointer] : m_Registry) {
-                auto registry = castRegistry<char>(pointer);
-                while (!registry->Queue.empty()) {
-                    for (auto& listener : registry->Listeners){
-                        listener->callback(*registry->Queue.front());
-                    }
-                    registry->Queue.pop();
-                }
-            }
-            // frame callbacks
+            for (auto& [_, reg] : m_Registry)
+                reg->poll();
             while (!m_Tasks.empty()) {
                 m_Tasks.front()();
                 m_Tasks.pop();
@@ -95,23 +91,19 @@ namespace flow{
 
         private:
             template<typename Event>
-            FLOW_INLINE eventRegistry<Event>* castRegistry(void* ptr) {
-                return static_cast<eventRegistry<Event>*>(ptr);
-            }
-
-            template<typename Event>
             FLOW_INLINE eventRegistry<Event>* getRegistry() {
                 auto it = m_Registry.find(TypeID<Event>());
                 if (it != m_Registry.end()) {
-                    return castRegistry<Event>(it->second);
+                    return static_cast<eventRegistry<Event>*>(it->second.get());
                 }
-                auto registry = new eventRegistry<Event>();
-                m_Registry[TypeID<Event>()] = registry;
-                return registry;
+                auto registry = std::make_unique<eventRegistry<Event>>();
+                auto ptr = registry.get();
+                m_Registry[TypeID<Event>()] = std::move(registry);
+                return ptr;
             }
 
         private:
-            std::unordered_map<uint32_t, void*> m_Registry;
+            std::unordered_map<uint32_t, std::unique_ptr<eventRegistryBase>> m_Registry;
             std::queue<std::function<void()>> m_Tasks;
     };
 }

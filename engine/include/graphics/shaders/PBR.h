@@ -17,9 +17,11 @@ namespace flow {
             u_Occlusion = glGetUniformLocation(m_FragmentProgID, "u_material.Occlusion");
 
             u_viewPos   = glGetUniformLocation(m_FragmentProgID, "u_viewPos");
-            u_IrradianceMap = glGetUniformLocation(m_FragmentProgID, "u_irradMap");
+            u_IrradianceMap = glGetUniformLocation(m_FragmentProgID, "u_IrradMap");
             u_BRDFMap = glGetUniformLocation(m_FragmentProgID, "u_BRDFMap");
             u_PrefilteredMap = glGetUniformLocation(m_FragmentProgID, "u_PrefilteredMap");
+            u_DepthMap = glGetUniformLocation(m_FragmentProgID, "u_DepthMap");
+            u_LightSpace = glGetUniformLocation(m_FragmentProgID, "u_LightSpace");
 
             u_npointLights = glGetUniformLocation(m_FragmentProgID, "u_npointLights");
             u_ndirectLights = glGetUniformLocation(m_FragmentProgID, "u_ndirectLights");
@@ -38,9 +40,27 @@ namespace flow {
             u_useMetallicMap = glGetUniformLocation(m_FragmentProgID, "u_material.useMetallicMap");
             u_useAlbedoMap = glGetUniformLocation(m_FragmentProgID, "u_material.useAlbedoMap");
             u_useNormalMap = glGetUniformLocation(m_FragmentProgID, "u_material.useNormalMap");
+
+            for (int32_t i = 0; i < kMaxLights; i++) {
+                std::string idx = std::to_string(i);
+                u_pointLight_Intensity[i] = glGetUniformLocation(m_FragmentProgID, ("u_pointLights[" + idx + "].Intensity").c_str());
+                u_pointLight_Radiance[i] = glGetUniformLocation(m_FragmentProgID, ("u_pointLights[" + idx + "].Radiance").c_str());
+                u_pointLight_Position[i] = glGetUniformLocation(m_FragmentProgID, ("u_pointLights[" + idx + "].Position").c_str());
+
+                u_directLight_Intensity[i] = glGetUniformLocation(m_FragmentProgID, ("u_directLights[" + idx + "].Intensity").c_str());
+                u_directLight_Radiance[i] = glGetUniformLocation(m_FragmentProgID, ("u_directLights[" + idx + "].Radiance").c_str());
+                u_directLight_Direction[i] = glGetUniformLocation(m_FragmentProgID, ("u_directLights[" + idx + "].Direction").c_str());
+
+                u_spotLight_Intensity[i] = glGetUniformLocation(m_FragmentProgID, ("u_spotLights[" + idx + "].Intensity").c_str());
+                u_spotLight_Radiance[i] = glGetUniformLocation(m_FragmentProgID, ("u_spotLights[" + idx + "].Radiance").c_str());
+                u_spotLight_Direction[i] = glGetUniformLocation(m_FragmentProgID, ("u_spotLights[" + idx + "].Direction").c_str());
+                u_spotLight_Falloff[i] = glGetUniformLocation(m_FragmentProgID, ("u_spotLights[" + idx + "].Falloff").c_str());
+                u_spotLight_Cutoff[i] = glGetUniformLocation(m_FragmentProgID, ("u_spotLights[" + idx + "].Cutoff").c_str());
+                u_spotLight_Position[i] = glGetUniformLocation(m_FragmentProgID, ("u_spotLights[" + idx + "].Position").c_str());
+            }
         }
 
-        FLOW_INLINE void setEnvMaps(int32_t irrad, int32_t brdf, int32_t prefil) {
+        FLOW_INLINE void setEnvMaps(int32_t irrad, int32_t brdf, int32_t prefil, int32_t depth) {
             Bind();
             glBindTextureUnit(0, irrad);
             glProgramUniform1i(m_FragmentProgID, u_IrradianceMap, 0);
@@ -48,6 +68,8 @@ namespace flow {
             glProgramUniform1i(m_FragmentProgID, u_BRDFMap, 1);
             glBindTextureUnit(2, prefil);
             glProgramUniform1i(m_FragmentProgID, u_PrefilteredMap, 2);
+            glBindTextureUnit(3, depth);
+            glProgramUniform1i(m_FragmentProgID, u_DepthMap, 3);
         }
 
         FLOW_INLINE void setCamera(camera3D& camera, transform3D& transform, float ratio){
@@ -71,7 +93,7 @@ namespace flow {
             glProgramUniform3fv(m_FragmentProgID, u_Albedo, 1, glm::value_ptr(material.Albedo));
             glProgramUniform3fv(m_FragmentProgID, u_Emissive, 1, glm::value_ptr(material.Emissive));
 
-            int32_t unit = 3;
+            int32_t unit = 4;
             bool useMap = false;
 
             useMap = material.AlbedoMap != nullptr;
@@ -114,58 +136,26 @@ namespace flow {
         }
 
         FLOW_INLINE void setPointLight(pointLight& light, transform3D& transform, int32_t index) {
-            std::string intensity = "u_pointLights[" + std::to_string(index) + "].Intensity";
-            std::string radiance = "u_pointLights[" + std::to_string(index) + "].Radiance";
-            std::string position = "u_pointLights[" + std::to_string(index) + "].Position";
-
-            int32_t u_intensity = glGetUniformLocation(m_FragmentProgID, intensity.c_str());
-            int32_t u_radiance = glGetUniformLocation(m_FragmentProgID, radiance.c_str());
-            int32_t u_position = glGetUniformLocation(m_FragmentProgID, position.c_str());
-
-            glProgramUniform1f(m_FragmentProgID, u_intensity, light.Intensity);
-            glProgramUniform3fv(m_FragmentProgID, u_radiance, 1, glm::value_ptr(light.Radiance));
-            glProgramUniform3fv(m_FragmentProgID, u_position, 1, glm::value_ptr(transform.Translate));
+            glProgramUniform1f(m_FragmentProgID, u_pointLight_Intensity[index], light.Intensity);
+            glProgramUniform3fv(m_FragmentProgID, u_pointLight_Radiance[index], 1, glm::value_ptr(light.Radiance));
+            glProgramUniform3fv(m_FragmentProgID, u_pointLight_Position[index], 1, glm::value_ptr(transform.Translate));
         }
 
         FLOW_INLINE void setDirectLight(directLight& light, transform3D& transform, int32_t index) {
-            std::string intensity = "u_directLights[" + std::to_string(index) + "].Intensity";
-            std::string radiance = "u_directLights[" + std::to_string(index) + "].Radiance";
-            std::string direction = "u_directLights[" + std::to_string(index) + "].Direction";
-
-            int32_t u_intensity = glGetUniformLocation(m_FragmentProgID, intensity.c_str());
-            int32_t u_radiance = glGetUniformLocation(m_FragmentProgID, radiance.c_str());
-            int32_t u_direction = glGetUniformLocation(m_FragmentProgID, direction.c_str());
-
             glm::vec3 forward = glm::quat(glm::radians(transform.Rotate)) * glm::vec3(0.0f, 0.0f, -1.0f);
-            glProgramUniform1f(m_FragmentProgID, u_intensity, light.Intensity);
-            glProgramUniform3fv(m_FragmentProgID, u_radiance, 1, glm::value_ptr(light.Radiance));
-            glProgramUniform3fv(m_FragmentProgID, u_direction, 1, glm::value_ptr(forward));
+            glProgramUniform1f(m_FragmentProgID, u_directLight_Intensity[index], light.Intensity);
+            glProgramUniform3fv(m_FragmentProgID, u_directLight_Radiance[index], 1, glm::value_ptr(light.Radiance));
+            glProgramUniform3fv(m_FragmentProgID, u_directLight_Direction[index], 1, glm::value_ptr(forward));
         }
 
         FLOW_INLINE void setSpotLight(spotLight& light, transform3D& transform, int32_t index) {
-            std::string intensity = "u_spotLights[" + std::to_string(index) + "].Intensity";
-            std::string radiance = "u_spotLights[" + std::to_string(index) + "].Radiance";
-            std::string direction = "u_spotLights[" + std::to_string(index) + "].Direction";
-            std::string falloff = "u_spotLights[" + std::to_string(index) + "].Falloff";
-            std::string cutoff = "u_spotLights[" + std::to_string(index) + "].Cutoff";
-            std::string position = "u_spotLights[" + std::to_string(index) + "].Position";
-
-            int32_t u_intensity = glGetUniformLocation(m_FragmentProgID, intensity.c_str());
-            int32_t u_radiance = glGetUniformLocation(m_FragmentProgID, radiance.c_str());
-            int32_t u_direction = glGetUniformLocation(m_FragmentProgID, direction.c_str());
-            int32_t u_falloff = glGetUniformLocation(m_FragmentProgID, falloff.c_str());
-            int32_t u_cutoff = glGetUniformLocation(m_FragmentProgID, cutoff.c_str());
-            int32_t u_position = glGetUniformLocation(m_FragmentProgID, position.c_str());
-
-            glProgramUniform1f(m_FragmentProgID, u_intensity, light.Intensity);
-            glProgramUniform1f(m_FragmentProgID, u_falloff, glm::cos(glm::radians(light.Falloff)));
-            glProgramUniform1f(m_FragmentProgID, u_cutoff, glm::cos(glm::radians(light.Cutoff)));
-            glProgramUniform3fv(m_FragmentProgID, u_radiance, 1, glm::value_ptr(light.Radiance));
-
             glm::vec3 forward = glm::quat(glm::radians(transform.Rotate)) * glm::vec3(0.0f, 0.0f, -1.0f);
-            glProgramUniform3fv(m_FragmentProgID, u_direction, 1, glm::value_ptr(forward));
-            glProgramUniform3fv(m_FragmentProgID, u_position, 1, glm::value_ptr(transform.Translate));
-
+            glProgramUniform1f(m_FragmentProgID, u_spotLight_Intensity[index], light.Intensity);
+            glProgramUniform1f(m_FragmentProgID, u_spotLight_Falloff[index], glm::cos(glm::radians(light.Falloff)));
+            glProgramUniform1f(m_FragmentProgID, u_spotLight_Cutoff[index], glm::cos(glm::radians(light.Cutoff)));
+            glProgramUniform3fv(m_FragmentProgID, u_spotLight_Radiance[index], 1, glm::value_ptr(light.Radiance));
+            glProgramUniform3fv(m_FragmentProgID, u_spotLight_Direction[index], 1, glm::value_ptr(forward));
+            glProgramUniform3fv(m_FragmentProgID, u_spotLight_Position[index], 1, glm::value_ptr(transform.Translate));
         }
 
         FLOW_INLINE void setPointLightCount(int32_t count) {
@@ -180,8 +170,13 @@ namespace flow {
             glProgramUniform1i(m_FragmentProgID, u_nspotLights, count);
         }
 
+        FLOW_INLINE void setLightSpaceMatrix(glm::mat4& lightSpace) {
+            glProgramUniformMatrix4fv(m_FragmentProgID, u_LightSpace, 1, GL_FALSE, glm::value_ptr(lightSpace));
+        }
 
         private:
+            static constexpr int32_t kMaxLights = 10;
+
             int32_t u_Model = -1;
             int32_t u_View = -1;
             int32_t u_Proj = -1;
@@ -210,9 +205,26 @@ namespace flow {
             int32_t u_IrradianceMap = -1;
             int32_t u_BRDFMap = -1;
             int32_t u_PrefilteredMap = -1;
+            int32_t u_LightSpace = -1;
+            int32_t u_DepthMap = -1;
 
             int32_t u_npointLights = -1;
             int32_t u_ndirectLights = -1;
             int32_t u_nspotLights = -1;
+
+            int32_t u_pointLight_Intensity[kMaxLights]{};
+            int32_t u_pointLight_Radiance[kMaxLights]{};
+            int32_t u_pointLight_Position[kMaxLights]{};
+
+            int32_t u_directLight_Intensity[kMaxLights]{};
+            int32_t u_directLight_Radiance[kMaxLights]{};
+            int32_t u_directLight_Direction[kMaxLights]{};
+
+            int32_t u_spotLight_Intensity[kMaxLights]{};
+            int32_t u_spotLight_Radiance[kMaxLights]{};
+            int32_t u_spotLight_Direction[kMaxLights]{};
+            int32_t u_spotLight_Falloff[kMaxLights]{};
+            int32_t u_spotLight_Cutoff[kMaxLights]{};
+            int32_t u_spotLight_Position[kMaxLights]{};
     };
 }

@@ -3,8 +3,6 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-#include "window/events.h"
-
 #include "graphics/shaders/PBR.h"
 #include "graphics/shaders/skymap.h"
 #include "graphics/shaders/skybox.h"
@@ -12,9 +10,11 @@
 #include "graphics/shaders/irradiance.h"
 #include "graphics/shaders/BRDF.h"
 #include "graphics/shaders/prefiltered.h"
-
+#include "graphics/shaders/shadow.h"
+#include "graphics/utilities/data.h"
+#include "graphics/utilities/skybox.h"
+#include "graphics/models/model.h"
 #include "buffers/frame.h"
-
 
 namespace flow {
     struct graphicsRenderer {
@@ -29,6 +29,7 @@ namespace flow {
             m_PBR = std::make_unique<PBRShader>("resources/shaders/pbr.vert", "resources/shaders/pbr.frag");
             m_Prefil = std::make_unique<PrefilteredShader>("resources/shaders/prefiltered.vert", "resources/shaders/prefiltered.frag");
             m_BRDF = std::make_unique<BRDFShader>("resources/shaders/brdf.vert", "resources/shaders/brdf.frag");
+            m_Shadow = std::make_unique<ShadowShader>("resources/shaders/shadow.vert", "resources/shaders/shadow.frag");
 
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -55,9 +56,33 @@ namespace flow {
             sky.BRDFMap = m_BRDF->Generate(size);
         }
 
+        FLOW_INLINE void setIBL(Skybox& sky) {
+            m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap, m_Shadow->getDepthmap());
+        }
+
         FLOW_INLINE void DrawSkybox(Skybox& sky, transform3D& transform) {
+            m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap, m_Shadow->getDepthmap());
             m_Skybox->Draw(m_SkyboxMesh, sky.m_CubeMap, transform);
-            m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap);
+        }
+
+        FLOW_INLINE void drawDepth(model3D& model, transform3D& transform) {
+            m_Shadow->Draw(model, transform);
+        }
+
+        FLOW_INLINE void beginShadowPass(const glm::vec3& lightDir) {
+            float nearPlane = 1.0f;
+            float farPlane = 10.0f;
+            auto proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+            auto view = glm::lookAt(lightDir, glm::vec3(0.0f, 0.0f, 0.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f));
+
+            auto lightSpaceMatrix = glm::mat4(proj * view);
+            m_PBR->Bind();
+            m_PBR->setLightSpaceMatrix(lightSpaceMatrix);
+        }
+
+        FLOW_INLINE void endShadowPass() {
+            m_Shadow->endFrame();
         }
 
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
@@ -120,6 +145,7 @@ namespace flow {
             std::unique_ptr<IrradianceShader> m_Irrad;
             std::unique_ptr<BRDFShader> m_BRDF;
             std::unique_ptr<PrefilteredShader> m_Prefil;
+            std::unique_ptr<ShadowShader> m_Shadow;
             skyboxMesh m_SkyboxMesh;
     };
 }

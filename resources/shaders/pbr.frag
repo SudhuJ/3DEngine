@@ -11,6 +11,8 @@ layout(location = 0) out vec4 out_fragment;
 
 uniform samplerCube u_IrradMap;
 uniform samplerCube u_PrefilteredMap;
+uniform sampler2D u_DepthMap;
+uniform mat4 u_LightSpace;
 uniform sampler2D u_BRDFMap;
 
 struct Material {
@@ -57,7 +59,6 @@ struct spotLight {
 };
 
 uniform Material u_material;
-
 uniform vec3 u_viewPos;
 uniform pointLight u_pointLights[MAX_LIGHTS];
 uniform directLight u_directLights[MAX_LIGHTS];
@@ -75,9 +76,9 @@ vec3 computeAmbientLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, 
     vec3 F = fresnelSchlick(cosTheta, F0);
     vec3 kD = mix(vec3(1.0) - F, vec3(0.0), metallic);
     vec3 diffuseIBL = kD * albedo * texture(u_IrradMap, N).rgb;
-    int mipLevels = 5;
     vec3 Lr = 2.0 * cosTheta * N - V;
-    vec3 Ks = textureLod(u_PrefilteredMap, Lr, roughness * mipLevels).rgb;
+    int mipLevels = textureQueryLevels(u_PrefilteredMap);
+    vec3 Ks = textureLod(u_PrefilteredMap, Lr, roughness * float(mipLevels - 1)).rgb;
 
     vec2 brdf = texture(u_BRDFMap, vec2(cosTheta, roughness)).rg;
     vec3 specularIBL = (F0 * brdf.x + brdf.y) * Ks;
@@ -178,7 +179,8 @@ vec3 computeSpotLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, flo
         float spotFactor = clamp((theta - u_spotLights[i].Falloff) / epsilon, 0.0, 1.0);
 
         // light attentuation
-        float a = 1.0f, b = 0.5f;
+        float a = 1.0;
+        float b = 0.5;
         float distance = length(u_spotLights[i].Position - v_Position);
         float denom = a * distance * distance + b * distance + 1;
         float attenuation = 1.0 / denom;
@@ -188,6 +190,13 @@ vec3 computeSpotLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, flo
                 attenuation * NdotL;
     }
     return result;
+}
+
+float computeShadow() {
+    vec4 position = u_LightSpace * vec4(v_Position, 1.0);
+    vec3 uvs = (position.xyz / position.w) * 0.5 + 0.5;
+    float depth = texture(u_DepthMap, uvs.xy).r;
+    return depth < uvs.z - 0.005 ? 1.0 : 0.0;
 }
 
 void main() {
@@ -222,11 +231,13 @@ void main() {
 
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
-    vec3 result = computeAmbientLight(N, V, F0, albedo, roughness, metallic);
-    result += computePointLight(N, V, F0, albedo, roughness, metallic);
-    result += computeDirectLight(N, V, F0, albedo, roughness, metallic);
-    result += computeSpotLight(N, V, F0, albedo, roughness, metallic);
+    vec3 ambient = computeAmbientLight(N, V, F0, albedo, roughness, metallic);
 
+    vec3 direct = computePointLight(N, V, F0, albedo, roughness, metallic);
+    direct += computeDirectLight(N, V, F0, albedo, roughness, metallic);
+    direct += computeSpotLight(N, V, F0, albedo, roughness, metallic);
+
+    vec3 result = ambient + (1.0 - computeShadow()) * direct;
     result = result * occlusion + emissive;
 
     out_fragment = vec4(result, 1.0);

@@ -33,12 +33,17 @@ namespace flow {
             int32_t maxDim = (m_Width > m_Height) ? m_Width : m_Height;
             int32_t levels = static_cast<int32_t>(std::floor(std::log2(maxDim))) + 1;
 
-            glCreateTextures(GL_TEXTURE_2D, levels, &m_ID);
+            glCreateTextures(GL_TEXTURE_2D, 1, &m_ID);
 
             if (isHDR) {
-                glTextureStorage2D(m_ID, levels, GL_RGB16F, m_Width, m_Height);
+                GLenum hdrFormat = GL_RGB;
+                GLenum hdrInternal = GL_RGB16F;
+                if (channels == 4) { hdrFormat = GL_RGBA; hdrInternal = GL_RGBA16F; }
+                else if (channels == 2) { hdrFormat = GL_RG; hdrInternal = GL_RG16F; }
+                else if (channels == 1) { hdrFormat = GL_RED; hdrInternal = GL_R16F; }
+                glTextureStorage2D(m_ID, levels, hdrInternal, m_Width, m_Height);
                 glTextureSubImage2D(m_ID, 0, 0, 0, m_Width, m_Height,
-                    channels == 4 ? GL_RGBA : GL_RGB, GL_FLOAT, pixels);
+                    hdrFormat, GL_FLOAT, pixels);
             }
             else {
                 glTextureStorage2D(m_ID, levels, GL_RGBA8, m_Width, m_Height);
@@ -56,7 +61,7 @@ namespace flow {
             return true;
         }
 
-        FLOW_INLINE void Use(uint32_t program_ID, uint32_t uniform, int32_t unit) {
+        FLOW_INLINE void Use(uint32_t program_ID, int32_t uniform, int32_t unit) {
             glBindTextureUnit(unit, m_ID);
             glProgramUniform1i(program_ID, uniform, unit);
         }
@@ -82,7 +87,7 @@ namespace flow {
             return m_Width;
         }
 
-        FLOW_INLINE int32_t getID() const {
+        FLOW_INLINE uint32_t getID() const {
             return m_ID;
         }
 

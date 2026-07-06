@@ -16,8 +16,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 # enable console logging
 if(${CMAKE_BUILD_TYPE} MATCHES Debug)
-  add_definitions(-DFLOW_ENABLE_LOG)
   message(STATUS "Debug build")
+  add_definitions(-DFLOW_ENABLE_LOG)
+  add_compile_options(-fsanitize=address -fsanitize=undefined -g -O1 -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=address -fsanitize=undefined)
 endif()
 
 # project subdirectories

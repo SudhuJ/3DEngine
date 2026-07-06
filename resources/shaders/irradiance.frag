@@ -18,7 +18,7 @@ void main() {
     int nSamples = 0;
     float sampleDelta = 0.025;
 
-    for (float theta = 0.0; theta < PI; theta += sampleDelta) {
+    for (float theta = 0.0; theta < PI / 2; theta += sampleDelta) {
         for (float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta) {
             vec3 tangentSample = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;
@@ -27,6 +27,6 @@ void main() {
         }
     }
 
-    irradiance = PI * (irradiance / float(nSamples));
+    irradiance = irradiance * sampleDelta * sampleDelta;
     out_fragment = vec4(irradiance, 1.0);
 }

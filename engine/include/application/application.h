@@ -32,7 +32,7 @@ namespace flow {
             auto camera = createEntt<Entity>();
             camera.Attach<transformComponent>().Transform.Translate.z = 3.0f;
             camera.Attach<cameraComponent>();
-
+            FLOW_INFO("camera created");
             // skybox
             auto skymap = std::make_shared<texture2D>();
             skymap->Load("resources/textures/qwantani_dusk_2_puresky_1k.hdr", true);
@@ -46,6 +46,7 @@ namespace flow {
             auto& dtp = dlight.Attach<transformComponent>().Transform;
             dtp.Rotate = glm::vec3(0.0f, 0.0f, -1.0f);
             dtp.Translate.z = -1.0f;
+            FLOW_INFO("direct light created");
 
             // create spot light
             auto slight = createEntt<Entity>();
@@ -81,9 +82,11 @@ namespace flow {
             enttView<Entity, skyboxComponent>([this, &skymap] (auto entity, auto& comp)
             {
                 m_Context->Renderer->InitSkybox(comp.Sky, skymap, 2048);
+                m_Context->Renderer->setIBL(comp.Sky);
             });
 
             while(m_Context->Window->pollEvents()){
+                renderSceneDepth();
                 m_Context->Renderer->newFrame();
 
                 int32_t lightCounter = 0;
@@ -140,5 +143,19 @@ namespace flow {
                 m_Context->Renderer->showFrame();
             }
         }
+
+        private:
+            FLOW_INLINE void renderSceneDepth() {
+                enttView<Entity, directLightComponent>([this](auto light, auto&) {
+                    auto& lightDir = light.template Get<transformComponent>().Transform.Rotate;
+                    m_Context->Renderer->beginShadowPass(lightDir);
+                    enttView<Entity, modelComponent>([this, &lightDir] (auto entity, auto& comp)
+                    {
+                    auto& transform = entity.template Get<transformComponent>().Transform;
+                    m_Context->Renderer->drawDepth(comp.Model, transform);
+                    });
+                    m_Context->Renderer->endShadowPass();
+                });
+            }
     };
 }

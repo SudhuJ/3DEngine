@@ -26,9 +26,10 @@ namespace flow {
             glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 
             uint32_t prefilteredMap = -1;
+            int32_t maxMipLevels = 5;
 
             glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &prefilteredMap);
-            glTextureStorage2D(prefilteredMap, 1, GL_RGB16F, size, size);
+            glTextureStorage2D(prefilteredMap, maxMipLevels, GL_RGB16F, size, size);
 
             glTextureParameteri(prefilteredMap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTextureParameteri(prefilteredMap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -40,23 +41,29 @@ namespace flow {
 
             glCreateFramebuffers(1, &FBO);
             glCreateRenderbuffers(1, &RBO);
-            glNamedRenderbufferStorage(RBO, GL_DEPTH_COMPONENT24, size, size);
             glNamedFramebufferRenderbuffer(FBO, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
             Bind();
             glProgramUniformMatrix4fv(m_VertexProgID, u_proj, 1, GL_FALSE, glm::value_ptr(proj));
             texture->Use(m_FragmentProgID, u_CubeMap, 0);
-            glViewport(0, 0, size, size);
 
-            for (uint32_t i = 0; i < 6; i++) {
-                glProgramUniformMatrix4fv(m_VertexProgID, u_view, 1, GL_FALSE, glm::value_ptr(views[i]));
-                glNamedFramebufferTextureLayer(FBO, GL_COLOR_ATTACHMENT0, prefilteredMap, 0, i);
-                glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                renderSkyboxMesh(mesh);
+            for (int32_t mip = 0; mip < maxMipLevels; mip++) {
+                int32_t mipSize = static_cast<int32_t>(size * std::pow(0.5f, mip));
+                float roughness = static_cast<float>(mip) / static_cast<float>(maxMipLevels - 1);
+
+                glProgramUniform1f(m_FragmentProgID, u_Roughness, roughness);
+                glViewport(0, 0, mipSize, mipSize);
+                glNamedRenderbufferStorage(RBO, GL_DEPTH_COMPONENT24, mipSize, mipSize);
+
+                for (uint32_t i = 0; i < 6; i++) {
+                    glProgramUniformMatrix4fv(m_VertexProgID, u_view, 1, GL_FALSE, glm::value_ptr(views[i]));
+                    glNamedFramebufferTextureLayer(FBO, GL_COLOR_ATTACHMENT0, prefilteredMap, mip, i);
+                    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                    renderSkyboxMesh(mesh);
+                }
             }
 
-            glGenerateTextureMipmap(prefilteredMap);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             Unbind();
 

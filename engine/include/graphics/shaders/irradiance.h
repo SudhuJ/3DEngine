@@ -33,7 +33,7 @@ namespace flow {
             glTextureParameteri(irradMap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTextureParameteri(irradMap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
             glTextureParameteri(irradMap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTextureParameteri(irradMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTextureParameteri(irradMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
             uint32_t FBO = -1, RBO = -1;
 
@@ -55,7 +55,6 @@ namespace flow {
                 renderSkyboxMesh(mesh);
             }
 
-            glGenerateTextureMipmap(irradMap);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             Unbind();
 

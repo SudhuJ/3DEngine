@@ -5,7 +5,9 @@
 namespace flow {
     struct BRDFShader : public Shader {
         FLOW_INLINE BRDFShader(const std::string& vertFile, const std::string& fragFile)
-        : Shader(vertFile, fragFile) {}
+        : Shader(vertFile, fragFile) {
+            m_Quad = createQuad2D();
+        }
 
         FLOW_INLINE uint32_t Generate(int32_t size) {
             uint32_t BRDFMap = -1;
@@ -15,7 +17,7 @@ namespace flow {
             glTextureParameteri(BRDFMap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTextureParameteri(BRDFMap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTextureParameteri(BRDFMap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTextureParameteri(BRDFMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTextureParameteri(BRDFMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
             uint32_t FBO = -1;
             glCreateFramebuffers(1, &FBO);
@@ -26,15 +28,15 @@ namespace flow {
             glClear(GL_COLOR_BUFFER_BIT);
 
             Bind();
-            auto quad = createQuad2D();
-            quad->Draw(GL_TRIANGLES);
+            m_Quad->Draw(GL_TRIANGLES);
             Unbind();
 
-            glGenerateTextureMipmap(BRDFMap);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glDeleteFramebuffers(1, &FBO);
 
             return BRDFMap;
         }
+        private:
+            quad2D m_Quad;
     };
 }

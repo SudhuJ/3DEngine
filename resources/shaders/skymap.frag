@@ -4,10 +4,13 @@ layout(location = 0) out vec4 out_fragment;
 
 uniform sampler2D u_map;
 
+const float INV_2PI = 0.15915494309189534;
+const float INV_PI = 0.3183098861837907;
+
 // Equirectangular Projection
 vec2 getSphericalUVs(vec3 v) {
     vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
-    uv *= vec2(0.1591, 0.3183);
+    uv *= vec2(INV_2PI, INV_PI);
     uv += 0.5;
     return uv;
 }
