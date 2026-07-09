@@ -156,19 +156,17 @@ namespace flow {
         }
 
         FLOW_INLINE void setDirectLight(directLight& light, transform3D& transform, int32_t index) {
-            glm::vec3 forward = glm::quat(glm::radians(transform.Rotate)) * glm::vec3(0.0f, 0.0f, -1.0f);
             glProgramUniform1f(m_FragmentProgID, u_directLight_Intensity[index], light.Intensity);
             glProgramUniform3fv(m_FragmentProgID, u_directLight_Radiance[index], 1, glm::value_ptr(light.Radiance));
-            glProgramUniform3fv(m_FragmentProgID, u_directLight_Direction[index], 1, glm::value_ptr(forward));
+            glProgramUniform3fv(m_FragmentProgID, u_directLight_Direction[index], 1, glm::value_ptr(transform.Rotate));
         }
 
         FLOW_INLINE void setSpotLight(spotLight& light, transform3D& transform, int32_t index) {
-            glm::vec3 forward = glm::quat(glm::radians(transform.Rotate)) * glm::vec3(0.0f, 0.0f, -1.0f);
             glProgramUniform1f(m_FragmentProgID, u_spotLight_Intensity[index], light.Intensity);
             glProgramUniform1f(m_FragmentProgID, u_spotLight_Falloff[index], glm::cos(glm::radians(light.Falloff)));
             glProgramUniform1f(m_FragmentProgID, u_spotLight_Cutoff[index], glm::cos(glm::radians(light.Cutoff)));
             glProgramUniform3fv(m_FragmentProgID, u_spotLight_Radiance[index], 1, glm::value_ptr(light.Radiance));
-            glProgramUniform3fv(m_FragmentProgID, u_spotLight_Direction[index], 1, glm::value_ptr(forward));
+            glProgramUniform3fv(m_FragmentProgID, u_spotLight_Direction[index], 1, glm::value_ptr(transform.Rotate));
             glProgramUniform3fv(m_FragmentProgID, u_spotLight_Position[index], 1, glm::value_ptr(transform.Translate));
         }
 

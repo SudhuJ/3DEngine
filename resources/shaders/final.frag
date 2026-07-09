@@ -6,8 +6,8 @@ uniform sampler2D u_map;
 uniform sampler2D u_bloom;
 
 const float MIN_GAMMA = 0.0001;
-const float GAMMA = 1;
-const float EXPOSURE = 1;
+const float GAMMA = 2.2;
+const float EXPOSURE = 10;
 const float BLOOM_INTENSITY = 0.04;
 
 void main() {

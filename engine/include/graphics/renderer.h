@@ -33,6 +33,8 @@ namespace flow {
             m_Shadow = std::make_unique<ShadowShader>("resources/shaders/shadow.vert", "resources/shaders/shadow.frag");
 
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_BLEND);
 
             m_SkyMap = std::make_unique<SkyMapShader>("resources/shaders/skymap.vert", "resources/shaders/skymap.frag");
             m_Skybox = std::make_unique<SkyboxShader>("resources/shaders/skybox.vert", "resources/shaders/skybox.frag");
@@ -53,9 +55,9 @@ namespace flow {
 
         FLOW_INLINE void InitSkybox(Skybox& sky, Texture& texture, int32_t size) {
             sky.m_CubeMap = m_SkyMap->Generate(texture, m_SkyboxMesh, size);
-            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 32);
-            sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, size);
-            sky.BRDFMap = m_BRDF->Generate(size);
+            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 128);
+            sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, 128);
+            sky.BRDFMap = m_BRDF->Generate(128);
         }
 
         FLOW_INLINE void setIBL(Skybox& sky) {

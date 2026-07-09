@@ -243,6 +243,9 @@ void main() {
         metallic *= texture(u_material.MetallicMap, v_UVs).r;
     }
 
+    // test
+    // metallic += 1000000;
+
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
     vec3 ambient = computeAmbientLight(N, V, F0, albedo, roughness, metallic);
