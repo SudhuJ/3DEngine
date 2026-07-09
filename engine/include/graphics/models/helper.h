@@ -18,12 +18,12 @@ namespace flow {
     }
 
     FLOW_INLINE static glm::mat4 assimptoMat4(const aiMatrix4x4& m) {
-        return glm::mat4(
-            m.a1, m.a2, m.a3, m.a4,
-            m.b1, m.b2, m.b3, m.b4,
-            m.c1, m.c2, m.c3, m.c4,
-            m.d1, m.d2, m.d3, m.d4
-        );
+        glm::mat4 to;
+        to[0][0] = m.a1; to[1][0] = m.a2; to[2][0] = m.a3; to[3][0] = m.a4;
+        to[0][1] = m.b1; to[1][1] = m.b2; to[2][1] = m.b3; to[3][1] = m.b4;
+        to[0][2] = m.c1; to[1][2] = m.c2; to[2][2] = m.c3; to[3][2] = m.c4;
+        to[0][3] = m.d1; to[1][3] = m.d2; to[2][3] = m.d3; to[3][3] = m.d4;
+        return to;
     }
 
 }

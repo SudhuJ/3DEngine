@@ -9,6 +9,7 @@ namespace flow {
             u_Model = glGetUniformLocation(m_VertexProgID, "u_model");
             u_View = glGetUniformLocation(m_VertexProgID, "u_view");
             u_Proj = glGetUniformLocation(m_VertexProgID, "u_proj");
+            u_hasJoints = glGetUniformLocation(m_VertexProgID, "u_hasJoints");
 
             u_Roughness = glGetUniformLocation(m_FragmentProgID, "u_material.Roughness");
             u_Metallic  = glGetUniformLocation(m_FragmentProgID, "u_material.Metallic");
@@ -85,7 +86,7 @@ namespace flow {
 
         FLOW_INLINE void Draw(model3D& model, PBRMaterial& material, transform3D& transform){
             glProgramUniformMatrix4fv(m_VertexProgID, u_Model, 1, GL_FALSE, glm::value_ptr(transform.Matrix()));
-
+            glProgramUniform1i(m_VertexProgID, u_hasJoints, model->HasJoint());
             glProgramUniform1f(m_FragmentProgID, u_Roughness, material.Roughness);
             glProgramUniform1f(m_FragmentProgID, u_Metallic, material.Metallic);
             glProgramUniform1f(m_FragmentProgID, u_Occlusion, material.Occlusion);
@@ -135,6 +136,19 @@ namespace flow {
             model->Draw(GL_TRIANGLES);
         }
 
+        FLOW_INLINE void setJoints(std::vector<glm::mat4>& transforms) {
+            for (size_t i = 0; i < transforms.size(); ++i) {
+                std::string uniform = "u_joints[" + std::to_string(i) + "]";
+                GLint loc = glGetUniformLocation(m_VertexProgID, uniform.c_str());
+                if (loc != -1) {
+                    glProgramUniformMatrix4fv(m_VertexProgID, loc, 1, GL_FALSE, glm::value_ptr(transforms[i]));
+                }
+                else {
+                    FLOW_ERROR("u_joints Location Not Set.");
+                }
+            }
+        }
+
         FLOW_INLINE void setPointLight(pointLight& light, transform3D& transform, int32_t index) {
             glProgramUniform1f(m_FragmentProgID, u_pointLight_Intensity[index], light.Intensity);
             glProgramUniform3fv(m_FragmentProgID, u_pointLight_Radiance[index], 1, glm::value_ptr(light.Radiance));
@@ -180,6 +194,7 @@ namespace flow {
             int32_t u_Model = -1;
             int32_t u_View = -1;
             int32_t u_Proj = -1;
+            int32_t u_hasJoints = -1;
 
             int32_t u_Roughness = -1;
             int32_t u_Metallic = -1;

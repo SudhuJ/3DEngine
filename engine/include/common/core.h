@@ -11,6 +11,7 @@
 #include <functional>
 #include <filesystem>
 #include <unordered_map>
+#include <map>
 
 // include spdlog
 #ifndef FMT_HEADER_ONLY

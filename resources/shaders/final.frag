@@ -5,12 +5,13 @@ layout(location = 0) in vec2 uvs;
 uniform sampler2D u_map;
 uniform sampler2D u_bloom;
 
-const float MIN_GAMMA = 0.000001;
-const float GAMMA = 2.5;
-const float EXPOSURE = 10;
+const float MIN_GAMMA = 0.0001;
+const float GAMMA = 1;
+const float EXPOSURE = 1;
+const float BLOOM_INTENSITY = 0.04;
 
 void main() {
-    vec3 result = texture(u_map, uvs).rgb + texture(u_bloom, uvs).rgb;
+    vec3 result = texture(u_map, uvs).rgb + texture(u_bloom, uvs).rgb * BLOOM_INTENSITY;
     result = pow(result, vec3(GAMMA));
     result = vec3(1.0) - exp(-result * EXPOSURE);
     result = pow(result, vec3(1.0 / max(GAMMA, MIN_GAMMA)));

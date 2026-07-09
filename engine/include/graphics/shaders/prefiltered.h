@@ -13,7 +13,7 @@ namespace flow {
             u_Roughness = glGetUniformLocation(m_FragmentProgID, "u_roughness");
         }
 
-        FLOW_INLINE uint32_t Generate(Texture& texture, skyboxMesh& mesh, int32_t size) {
+        FLOW_INLINE uint32_t Generate(uint32_t skyCubeMap, skyboxMesh& mesh, int32_t size) {
             glm::mat4 views[6] = {
                 glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
                 glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
@@ -45,7 +45,8 @@ namespace flow {
 
             Bind();
             glProgramUniformMatrix4fv(m_VertexProgID, u_proj, 1, GL_FALSE, glm::value_ptr(proj));
-            texture->Use(m_FragmentProgID, u_CubeMap, 0);
+            glBindTextureUnit(0, skyCubeMap);
+            glProgramUniform1i(m_FragmentProgID, u_CubeMap, 0);
 
             for (int32_t mip = 0; mip < maxMipLevels; mip++) {
                 int32_t mipSize = static_cast<int32_t>(size * std::pow(0.5f, mip));

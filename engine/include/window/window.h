@@ -1,6 +1,7 @@
 #pragma once
 #include "inputs.h"
 #include "events.h"
+#include <stb_image.h>
 
 namespace flow {
     struct appWindow {
@@ -43,9 +44,15 @@ namespace flow {
             glfwSetKeyCallback(m_Handle, onKey);
             glfwSetErrorCallback(onError);
 
-
             glfwMakeContextCurrent(m_Handle);
             glfwSwapInterval(1);
+
+            // // Load PNG, get pixels
+            // int w, h, channels;
+            // unsigned char* pixels = stbi_load("resources/textures/logo.png", &w, &h, &channels, 4);
+            // GLFWimage icon = { w, h, pixels };
+            // glfwSetWindowIcon(m_Handle, 1, &icon);
+            // stbi_image_free(pixels);
         }
 
         FLOW_INLINE ~appWindow() {

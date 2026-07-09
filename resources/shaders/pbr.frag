@@ -196,9 +196,21 @@ vec3 computeSpotLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, flo
 
 float computeShadow() {
     vec4 position = u_LightSpace * vec4(v_Position, 1.0);
-    vec3 uvs = (position.xyz / position.w) * 0.5 + 0.5;
-    float depth = texture(u_DepthMap, uvs.xy).r;
-    return depth < uvs.z - 0.005 ? 1.0 : 0.0;
+    vec3 coords = (position.xyz / position.w) * 0.5 + 0.5;
+
+    float pixelSize = 1.0 / 2048.0;
+    float shadow = 0.0;
+    float bias = 0.005;
+
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float depth = texture(u_DepthMap, coords.xy + vec2(x, y) * pixelSize).r;
+            shadow += (position.z - bias) > depth ? 0.7 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+    if (coords.z > 1.0) shadow = 0.0;
+    return shadow;
 }
 
 void main() {
@@ -239,8 +251,9 @@ void main() {
     direct += computeDirectLight(N, V, F0, albedo, roughness, metallic);
     direct += computeSpotLight(N, V, F0, albedo, roughness, metallic);
 
-    vec3 result = ambient + (1.0 - computeShadow()) * direct;
+    vec3 result = ambient + direct;
     result = result * occlusion + emissive;
+    result *= (1.0 - computeShadow());
 
     if (dot(result, BLOOM_THRESHOLD) > 1.0) {
         out_brightness = vec4(result, 1.0);

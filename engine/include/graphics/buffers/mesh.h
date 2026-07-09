@@ -48,6 +48,19 @@ namespace flow {
                 setAttribute(0, 3, offsetof(skyboxVertex, Position));
             }
 
+            else if (TypeID<Vertex>() == TypeID<skeletalVertex>()) {
+                setAttribute(0, 3, offsetof(skeletalVertex, Position));
+                setAttribute(1, 3, offsetof(skeletalVertex, Normal));
+                setAttribute(2, 2, offsetof(skeletalVertex, UVs));
+                setAttribute(3, 3, offsetof(skeletalVertex, Tangent));
+                setAttribute(4, 3, offsetof(skeletalVertex, Bitangent));
+                glEnableVertexArrayAttrib(m_BufferID, 5);
+                glVertexArrayAttribIFormat(m_BufferID, 5, 4, GL_INT, offsetof(skeletalVertex, Joints));
+                glVertexArrayAttribBinding(m_BufferID, 5, 0);
+                setAttribute(6, 4, offsetof(skeletalVertex, Weights));
+
+            }
+
             else {
                 FLOW_ERROR(false && "Invalid Vertex Type.");
             }
@@ -87,5 +100,6 @@ namespace flow {
             uint32_t m_EBOID = 0u;
     };
     using shadedMesh = Mesh<shadedVertex>;
+    using skeletalMesh = Mesh<skeletalVertex>;
     using mesh3D = std::shared_ptr<shadedMesh>;
 }

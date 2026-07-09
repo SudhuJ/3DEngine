@@ -31,4 +31,14 @@ namespace flow {
     struct skyboxVertex {
         glm::vec3 Position = glm::vec3(0.0f);
     };
+
+    struct skeletalVertex {
+        glm::vec3 Position = glm::vec3(0.0f);
+        glm::vec3 Normal = glm::vec3(0.0f);
+        glm::vec2 UVs = glm::vec2(0.0f);
+        glm::vec3 Tangent = glm::vec3(0.0f);
+        glm::vec3 Bitangent = glm::vec3(0.0f);
+        glm::ivec4 Joints = glm::ivec4(-1);
+        glm::vec4 Weights = glm::vec4(0.0f);
+    };
 }

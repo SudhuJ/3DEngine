@@ -47,6 +47,7 @@ namespace flow {
         }
 
         FLOW_INLINE void endFrame() {
+            glCullFace(GL_BACK);
             glDisable(GL_DEPTH_TEST);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }

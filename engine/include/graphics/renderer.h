@@ -53,8 +53,8 @@ namespace flow {
 
         FLOW_INLINE void InitSkybox(Skybox& sky, Texture& texture, int32_t size) {
             sky.m_CubeMap = m_SkyMap->Generate(texture, m_SkyboxMesh, size);
-            sky.IrradianceMap = m_Irrad->Generate(texture, m_SkyboxMesh, 32);
-            sky.PrefilteredMap = m_Prefil->Generate(texture, m_SkyboxMesh, size);
+            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 32);
+            sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, size);
             sky.BRDFMap = m_BRDF->Generate(size);
         }
 
@@ -67,8 +67,8 @@ namespace flow {
         }
 
         FLOW_INLINE void DrawSkybox(Skybox& sky, transform3D& transform) {
-            m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap, m_Shadow->getDepthmap());
             m_Skybox->Draw(m_SkyboxMesh, sky.m_CubeMap, transform);
+            m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap, m_Shadow->getDepthmap());
         }
 
         FLOW_INLINE void drawDepth(model3D& model, transform3D& transform) {
@@ -94,6 +94,11 @@ namespace flow {
 
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
             m_Frame->Resize(width, height);
+            m_Bloom->Resize(width, height);
+        }
+
+        FLOW_INLINE void setJoints(std::vector<glm::mat4>& transforms) {
+            m_PBR->setJoints(transforms);
         }
 
         FLOW_INLINE uint32_t getFrame() {

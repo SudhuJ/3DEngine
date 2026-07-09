@@ -2,6 +2,7 @@
 #include <entt/entt.hpp>
 #include "graphics/utilities/data.h"
 #include "graphics/models/model.h"
+#include "physics/utilities.h"
 
 namespace flow {
     using entityID = entt::entity;
@@ -117,5 +118,23 @@ namespace flow {
         FLOW_INLINE skyboxComponent(const skyboxComponent&) = default;
         FLOW_INLINE skyboxComponent() = default;
         Skybox Sky;
+    };
+
+    struct animatorComponent {
+        FLOW_INLINE animatorComponent(const animatorComponent&) = default;
+        FLOW_INLINE animatorComponent() = default;
+        animator3D Animator;
+    };
+
+    struct rigidBodyComponent {
+        FLOW_INLINE rigidBodyComponent(const rigidBodyComponent&) = default;
+        FLOW_INLINE rigidBodyComponent() = default;
+        RigidBody3D RigidBody;
+    };
+
+    struct colliderComponent {
+        FLOW_INLINE colliderComponent(const colliderComponent&) = default;
+        FLOW_INLINE colliderComponent() = default;
+        Collider3D Collider;
     };
 }

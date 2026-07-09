@@ -24,9 +24,6 @@ namespace flow {
             glCreateTextures(GL_TEXTURE_2D, 1, &m_PingPongMaps[0]);
             glCreateTextures(GL_TEXTURE_2D, 1, &m_PingPongMaps[1]);
 
-            glCreateTextures(GL_TEXTURE_2D, 1, &m_PingPongMaps[0]);
-            glCreateTextures(GL_TEXTURE_2D, 1, &m_PingPongMaps[1]);
-
             for (auto i = 0; i < 2; i++) {
                 glTextureStorage2D(m_PingPongMaps[i], 1, GL_RGB16F, m_Width, m_Height);
                 glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -41,33 +38,43 @@ namespace flow {
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
             m_Width = width / m_Scale;
             m_Height = height / m_Scale;
+            for (auto i = 0; i < 2; i++) {
+                glDeleteTextures(1, &m_PingPongMaps[i]);
+                glCreateTextures(GL_TEXTURE_2D, 1, &m_PingPongMaps[i]);
+                glTextureStorage2D(m_PingPongMaps[i], 1, GL_RGB16F, m_Width, m_Height);
+                glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glNamedFramebufferTexture(m_FrameBuffer[i], GL_COLOR_ATTACHMENT0, m_PingPongMaps[i], 0);
+            }
         }
 
         FLOW_INLINE uint32_t getMap() const {
-            return m_PingPongMaps[1];
+            return m_PingPongMaps[0];
         }
 
         FLOW_INLINE void Apply(uint32_t brightnessTexture) {
-            glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer[0]);
-            glViewport(0, 0, m_Width, m_Height);
-            glClear(GL_COLOR_BUFFER_BIT);
-
             Bind();
-            glProgramUniform1i(m_FragmentProgID, u_horizontalPass, GL_TRUE);
             glBindTextureUnit(0, brightnessTexture);
             glProgramUniform1i(m_FragmentProgID, u_brightnessMap, 0);
             glProgramUniform1i(m_FragmentProgID, u_frameWidth, m_Width);
             glProgramUniform1i(m_FragmentProgID, u_frameHeight, m_Height);
-            m_Quad->Draw(GL_TRIANGLES);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer[1]);
             glViewport(0, 0, m_Width, m_Height);
-            glClear(GL_COLOR_BUFFER_BIT);
 
-            glProgramUniform1i(m_FragmentProgID, u_horizontalPass, GL_FALSE);
-            glBindTextureUnit(0, m_PingPongMaps[0]);
-            glProgramUniform1i(m_FragmentProgID, u_brightnessMap, 0);
-            m_Quad->Draw(GL_TRIANGLES);
+            bool horizontal = true;
+            for (uint32_t i = 0; i < 10; i++) {
+                glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer[horizontal]);
+                glProgramUniform1i(m_FragmentProgID, u_horizontalPass, horizontal);
+
+                if (i > 0) {
+                    glBindTextureUnit(0, m_PingPongMaps[!horizontal]);
+                    glProgramUniform1i(m_FragmentProgID, u_brightnessMap, 0);
+                }
+
+                m_Quad->Draw(GL_TRIANGLES);
+                horizontal = !horizontal;
+            }
 
             Unbind();
             glBindFramebuffer(GL_FRAMEBUFFER, 0);

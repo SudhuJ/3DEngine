@@ -9,6 +9,9 @@ namespace flow {
         FLOW_INLINE texture2D(const std::string& path) {
             Load(path);
         }
+        FLOW_INLINE texture2D(const std::string& path, bool isHDR, bool flipY) {
+            Load(path, isHDR, flipY);
+        }
 
         FLOW_INLINE ~texture2D() {
             glDeleteTextures(1, &m_ID);

@@ -8,6 +8,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(stb CONFIG REQUIRED)
+find_package(PhysX CONFIG REQUIRED)
 
 # gather src files
 file(GLOB_RECURSE sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
@@ -32,6 +33,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     EnTT::EnTT
     assimp::assimp
     stb::stb
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    physx::physx
 )
 
 # copy resources
