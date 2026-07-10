@@ -38,9 +38,9 @@ namespace flow {
         float FOV = glm::radians(45.0f);
     };
 
-    struct PBRMaterial{
-        FLOW_INLINE PBRMaterial() = default;
-        FLOW_INLINE PBRMaterial(const PBRMaterial&) = default;
+    struct Material{
+        FLOW_INLINE Material() = default;
+        FLOW_INLINE Material(const Material&) = default;
 
         glm::vec3 Emissive = glm::vec3(0.0f);
         glm::vec3 Albedo = glm::vec3(1.0f);

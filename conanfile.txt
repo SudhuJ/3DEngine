@@ -8,6 +8,10 @@ entt/3.14.0
 assimp/5.4.3
 stb/cci.20230920
 physx/4.1.2
+sol2/3.5.0
+lua/5.4.6
+yaml-cpp/0.9.0
+magic_enum/0.9.7
 
 [options]
 glfw/*:shared=False
@@ -16,6 +20,7 @@ glad/*:spec=gl
 glad/*:api=gl=4.5
 glad/*:profile=core
 physx/*:shared=True
+yaml-cpp/*:shared=True
 
 [generators]
 CMakeDeps

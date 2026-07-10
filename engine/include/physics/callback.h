@@ -31,8 +31,8 @@ namespace flow {
             if (m_Callback && actor1 && actor2) {
             PxPayload event;
             event.Event = PxEvent::CONTACT;
-            event.Entity1 = *static_cast<entityID*>(actor1->userData);
-            event.Entity2 = *static_cast<entityID*>(actor2->userData);
+            event.Entity1 = actor1->userData ? *static_cast<entityID*>(actor1->userData) : NENTT;
+            event.Entity2 = actor2->userData ? *static_cast<entityID*>(actor2->userData) : NENTT;
             m_Callback(event);
             }
 
@@ -46,8 +46,8 @@ namespace flow {
                 if (actor1 && actor2) {
                     PxPayload event;
                     event.Event = PxEvent::TRIGGER;
-                    event.Entity1 = *static_cast<entityID*>(actor1->userData);
-                    event.Entity2 = *static_cast<entityID*>(actor2->userData);
+                    event.Entity1 = actor1->userData ? *static_cast<entityID*>(actor1->userData) : NENTT;
+                    event.Entity2 = actor2->userData ? *static_cast<entityID*>(actor2->userData) : NENTT;
                     m_Callback(event);
                 }
             }

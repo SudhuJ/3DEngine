@@ -60,6 +60,12 @@ namespace flow {
             sky.BRDFMap = m_BRDF->Generate(128);
         }
 
+        FLOW_INLINE void Animate(model3D model, float dt) {
+            if (auto joints = model->Animate(dt)) {
+                m_PBR->setJoints(*joints);
+            }
+        }
+
         FLOW_INLINE void setIBL(Skybox& sky) {
             m_PBR->setEnvMaps(sky.IrradianceMap, sky.BRDFMap, sky.PrefilteredMap, m_Shadow->getDepthmap());
         }
@@ -124,7 +130,7 @@ namespace flow {
             m_Final->Show(m_Frame->getTexture(), m_Bloom->getMap());
         }
 
-        FLOW_INLINE void Draw(model3D& model, PBRMaterial& material, transform3D& transform) {
+        FLOW_INLINE void Draw(model3D& model, Material& material, transform3D& transform) {
             m_PBR->Draw(model, material, transform);
         }
 

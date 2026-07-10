@@ -84,7 +84,7 @@ namespace flow {
             mesh->Draw(GL_TRIANGLES);
         }
 
-        FLOW_INLINE void Draw(model3D& model, PBRMaterial& material, transform3D& transform){
+        FLOW_INLINE void Draw(model3D& model, Material& material, transform3D& transform){
             glProgramUniformMatrix4fv(m_VertexProgID, u_Model, 1, GL_FALSE, glm::value_ptr(transform.Matrix()));
             glProgramUniform1i(m_VertexProgID, u_hasJoints, model->HasJoint());
             glProgramUniform1f(m_FragmentProgID, u_Roughness, material.Roughness);

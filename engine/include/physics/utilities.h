@@ -9,11 +9,15 @@ namespace flow {
         PxRigidActor* actor = nullptr;
 
         float Density = 1.0f;
+        bool Dynamic = false;
+    };
 
-        enum {
-            DYNAMIC = 0,
-            STATIC,
-        } Type;
+    enum ColliderType : uint8_t {
+        UNKNOWN = 0,
+        CAPSULE,
+        SPHERE,
+        BOX,
+        MESH
     };
 
 
@@ -28,11 +32,6 @@ namespace flow {
 
         PxConvexMeshGeometry Mesh;
         PxShape* Shape = nullptr;
-
-        enum {
-            BOX = 0,
-            SPHERE,
-            MESH,
-        } Type;
+        ColliderType Type;
     };
 }

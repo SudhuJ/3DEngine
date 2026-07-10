@@ -1,6 +1,7 @@
 #pragma once
 #include "callback.h"
 #include "utilities.h"
+#include "common/event.h"
 
 namespace flow {
     struct physicsContext {
@@ -62,11 +63,11 @@ namespace flow {
                 collider.Material = m_Physics->createMaterial(collider.StaticFriction,
                     collider.DynamicFriction, collider.Restitution);
 
-                if (collider.Type == Collider3D::BOX) {
+                if (collider.Type == BOX) {
                     PxBoxGeometry box(Vec3ToPx(transform.Scale/2.0f));
                     collider.Shape = m_Physics->createShape(box, *collider.Material);
                 }
-                else if (collider.Type == Collider3D::SPHERE) {
+                else if (collider.Type == SPHERE) {
                     PxSphereGeometry sphere(transform.Scale.x/2.0f);
                     collider.Shape = m_Physics->createShape(sphere, *collider.Material);
                 }
@@ -80,11 +81,11 @@ namespace flow {
                 }
 
                 // create actor instance
-                if (body.Type == RigidBody3D::DYNAMIC) {
+                if (body.Dynamic) {
                     body.actor = PxCreateDynamic(*m_Physics, pose, *collider.Shape, body.Density);
                     body.actor->setActorFlag(PxActorFlag::eSEND_SLEEP_NOTIFIES, true);
                 }
-                else if (body.Type == RigidBody3D::STATIC) {
+                else if (!body.Dynamic) {
                     body.actor = PxCreateStatic(*m_Physics, pose, *collider.Shape);
                 }
                 if (!body.actor) {
@@ -95,10 +96,10 @@ namespace flow {
                 m_Scene->addActor(*body.actor);
             }
             else {
-                if (body.Type == RigidBody3D::DYNAMIC) {
+                if (body.Dynamic) {
                     body.actor = m_Physics->createRigidDynamic(pose);
                 }
-                else if (body.Type == RigidBody3D::STATIC) {
+                else if (!body.Dynamic) {
                     body.actor = m_Physics->createRigidStatic(pose);
                 }
             }

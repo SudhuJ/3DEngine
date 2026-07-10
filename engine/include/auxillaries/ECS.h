@@ -3,6 +3,8 @@
 #include "graphics/utilities/data.h"
 #include "graphics/models/model.h"
 #include "physics/utilities.h"
+#include "scripts/utilities.h"
+#include "assets.h"
 
 namespace flow {
     using entityID = entt::entity;
@@ -92,8 +94,8 @@ namespace flow {
     struct modelComponent {
         FLOW_INLINE modelComponent(const modelComponent&) = default;
         FLOW_INLINE modelComponent() = default;
-        model3D Model;
-        PBRMaterial Material;
+        AssetID Model = EMPTY_ASSET;
+        AssetID Material = EMPTY_ASSET;
     };
 
     struct pointLightComponent {
@@ -117,7 +119,7 @@ namespace flow {
     struct skyboxComponent {
         FLOW_INLINE skyboxComponent(const skyboxComponent&) = default;
         FLOW_INLINE skyboxComponent() = default;
-        Skybox Sky;
+        AssetID Sky = EMPTY_ASSET;
     };
 
     struct animatorComponent {
@@ -136,5 +138,20 @@ namespace flow {
         FLOW_INLINE colliderComponent(const colliderComponent&) = default;
         FLOW_INLINE colliderComponent() = default;
         Collider3D Collider;
+    };
+
+    struct scriptComponent {
+        FLOW_INLINE scriptComponent(const scriptComponent&) = default;
+        FLOW_INLINE scriptComponent() = default;
+        AssetID Script = EMPTY_ASSET;
+        LuaScript Instance;
+    };
+
+    struct infoComponent {
+        FLOW_INLINE infoComponent(const infoComponent&) = default;
+        FLOW_INLINE infoComponent() = default;
+        AssetID Parent = EMPTY_ASSET;
+        std::string Name = "Entity";
+        AssetID UID = RandomU64();
     };
 }

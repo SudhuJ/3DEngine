@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <map>
+#include <random>
 
 // include spdlog
 #ifndef FMT_HEADER_ONLY
@@ -130,10 +131,18 @@ namespace flow{
             return counter++;
         }
     }
+
     template <typename T>
     FLOW_INLINE uint32_t TypeID() {
         static const uint32_t id = internal::nextTypeID();
         return id;
+    }
+
+    FLOW_INLINE uint64_t RandomU64() {
+        static std::random_device device;
+        static std::mt19937_64 generator(device());
+        static std::uniform_int_distribution<uint64_t> distribution;
+        return distribution(generator);
     }
 }
 

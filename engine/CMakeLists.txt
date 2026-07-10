@@ -9,6 +9,8 @@ find_package(EnTT CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(stb CONFIG REQUIRED)
 find_package(PhysX CONFIG REQUIRED)
+find_package(sol2 CONFIG REQUIRED)
+find_package(lua CONFIG REQUIRED)
 
 # gather src files
 file(GLOB_RECURSE sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
@@ -33,6 +35,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     EnTT::EnTT
     assimp::assimp
     stb::stb
+    sol2::sol2
+    lua::lua
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -49,3 +53,13 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/resources)
 else()
   message(WARNING "[WARNING] no resource directory!")
 endif()
+
+# if (EXISTS ${CMAKE_SOURCE_DIR}/script)
+#   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND
+#         ${CMAKE_COMMAND} -E copy_directory
+#         ${CMAKE_SOURCE_DIR}/script
+#         $<TARGET_FILE_DIR:${PROJECT_NAME}>/resources/scripts
+#     )
+# else()
+#   message(WARNING "[WARNING] no script directory!")
+# endif()
