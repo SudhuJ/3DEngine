@@ -86,10 +86,10 @@ namespace flow {
         FLOW_INLINE Skybox() = default;
         FLOW_INLINE Skybox(const Skybox&) = default;
 
-        uint32_t m_CubeMap = -1;
-        uint32_t IrradianceMap = -1;
-        uint32_t PrefilteredMap = -1;
-        uint32_t BRDFMap = -1;
+        uint32_t m_CubeMap = 0;
+        uint32_t IrradianceMap = 0;
+        uint32_t PrefilteredMap = 0;
+        uint32_t BRDFMap = 0;
     };
 
 }

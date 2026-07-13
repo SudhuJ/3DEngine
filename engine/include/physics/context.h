@@ -43,7 +43,21 @@ namespace flow {
         }
 
         FLOW_INLINE ~physicsContext() {
-            if (m_Scene) { m_Scene->release(); }
+            if (m_Scene) {
+                PxU32 nbActors = m_Scene->getNbActors(
+                    PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC);
+                if (nbActors > 0) {
+                    std::vector<PxActor*> actors(nbActors);
+                    m_Scene->getActors(
+                        PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC,
+                        actors.data(), nbActors);
+                    for (PxActor* actor : actors) {
+                        delete static_cast<entityID*>(actor->userData);
+                    }
+                }
+                m_Scene->release();
+            }
+
             if (m_Physics) { m_Physics->release(); }
             if (m_Dispatcher) { m_Dispatcher->release(); }
             if (m_Foundation) { m_Foundation->release(); }

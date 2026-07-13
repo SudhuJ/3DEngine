@@ -1,6 +1,6 @@
 # flowEngine
 
-A C++17 game engine using CMake and Conan.
+A C++17 game engine built using CMake and Conan.
 
 ## Dependencies
 - spdlog/1.15.0

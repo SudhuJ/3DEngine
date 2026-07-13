@@ -11,6 +11,9 @@ find_package(stb CONFIG REQUIRED)
 find_package(PhysX CONFIG REQUIRED)
 find_package(sol2 CONFIG REQUIRED)
 find_package(lua CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
+# find_package(imgui CONFIG REQUIRED)
 
 # gather src files
 file(GLOB_RECURSE sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
@@ -37,9 +40,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     stb::stb
     sol2::sol2
     lua::lua
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
+    yaml-cpp::yaml-cpp
+    magic_enum::magic_enum
+    # imgui::imgui
     physx::physx
 )
 

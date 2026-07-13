@@ -75,9 +75,9 @@ namespace flow {
         }
 
         private:
-            int32_t u_Roughness = -1;
-            int32_t u_view = -1;
-            int32_t u_proj = -1;
-            int32_t u_CubeMap = -1;
+            uint32_t u_Roughness = 0;
+            uint32_t u_view = 0;
+            uint32_t u_proj = 0;
+            uint32_t u_CubeMap = 0;
     };
 }

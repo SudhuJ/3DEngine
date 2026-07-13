@@ -7,12 +7,11 @@ uniform sampler2D u_bloom;
 
 const float MIN_GAMMA = 0.0001;
 const float GAMMA = 2.2;
-const float EXPOSURE = 10;
+const float EXPOSURE = 1.0;
 const float BLOOM_INTENSITY = 0.04;
 
 void main() {
     vec3 result = texture(u_map, uvs).rgb + texture(u_bloom, uvs).rgb * BLOOM_INTENSITY;
-    result = pow(result, vec3(GAMMA));
     result = vec3(1.0) - exp(-result * EXPOSURE);
     result = pow(result, vec3(1.0 / max(GAMMA, MIN_GAMMA)));
     out_fragment = vec4(result, 1.0);

@@ -187,57 +187,57 @@ namespace flow {
         }
 
         private:
-            static constexpr int32_t kMaxLights = 10;
+        static constexpr int32_t kMaxLights = 10;
 
-            int32_t u_Model = -1;
-            int32_t u_View = -1;
-            int32_t u_Proj = -1;
-            int32_t u_hasJoints = -1;
+        uint32_t u_Model = 0u;
+        uint32_t u_View = 0u;
+        uint32_t u_Proj = 0u;
+        uint32_t u_hasJoints = 0u;
 
-            int32_t u_Roughness = -1;
-            int32_t u_Metallic = -1;
-            int32_t u_Albedo = -1;
-            int32_t u_Emissive = -1;
-            int32_t u_Occlusion = -1;
+        uint32_t u_Roughness = 0u;
+        uint32_t u_Metallic = 0u;
+        uint32_t u_Albedo = 0u;
+        uint32_t u_Emissive = 0u;
+        uint32_t u_Occlusion = 0u;
 
-            int32_t u_useRoughnessMap = -1;
-            int32_t u_useOcclusionMap = -1;
-            int32_t u_useEmissiveMap = -1;
-            int32_t u_useMetallicMap = -1;
-            int32_t u_useAlbedoMap = -1;
-            int32_t u_useNormalMap = -1;
+        uint32_t u_useRoughnessMap = 0u;
+        uint32_t u_useOcclusionMap = 0u;
+        uint32_t u_useEmissiveMap = 0u;
+        uint32_t u_useMetallicMap = 0u;
+        uint32_t u_useAlbedoMap = 0u;
+        uint32_t u_useNormalMap = 0u;
 
-            int32_t u_RoughnessMap = -1;
-            int32_t u_OcclusionMap = -1;
-            int32_t u_EmissiveMap = -1;
-            int32_t u_MetallicMap = -1;
-            int32_t u_AlbedoMap = -1;
-            int32_t u_NormalMap = -1;
+        uint32_t u_RoughnessMap = 0u;
+        uint32_t u_OcclusionMap = 0u;
+        uint32_t u_EmissiveMap = 0u;
+        uint32_t u_MetallicMap = 0u;
+        uint32_t u_AlbedoMap = 0u;
+        uint32_t u_NormalMap = 0u;
 
-            int32_t u_viewPos = -1;
-            int32_t u_IrradianceMap = -1;
-            int32_t u_BRDFMap = -1;
-            int32_t u_PrefilteredMap = -1;
-            int32_t u_LightSpace = -1;
-            int32_t u_DepthMap = -1;
+        uint32_t u_viewPos = 0u;
+        uint32_t u_IrradianceMap = 0u;
+        uint32_t u_BRDFMap = 0u;
+        uint32_t u_PrefilteredMap = 0u;
+        uint32_t u_LightSpace = 0u;
+        uint32_t u_DepthMap = 0u;
 
-            int32_t u_npointLights = -1;
-            int32_t u_ndirectLights = -1;
-            int32_t u_nspotLights = -1;
+        uint32_t u_npointLights = 0u;
+        uint32_t u_ndirectLights = 0u;
+        uint32_t u_nspotLights = 0u;
 
-            int32_t u_pointLight_Intensity[kMaxLights]{};
-            int32_t u_pointLight_Radiance[kMaxLights]{};
-            int32_t u_pointLight_Position[kMaxLights]{};
+        int32_t u_pointLight_Intensity[kMaxLights]{};
+        int32_t u_pointLight_Radiance[kMaxLights]{};
+        int32_t u_pointLight_Position[kMaxLights]{};
 
-            int32_t u_directLight_Intensity[kMaxLights]{};
-            int32_t u_directLight_Radiance[kMaxLights]{};
-            int32_t u_directLight_Direction[kMaxLights]{};
+        int32_t u_directLight_Intensity[kMaxLights]{};
+        int32_t u_directLight_Radiance[kMaxLights]{};
+        int32_t u_directLight_Direction[kMaxLights]{};
 
-            int32_t u_spotLight_Intensity[kMaxLights]{};
-            int32_t u_spotLight_Radiance[kMaxLights]{};
-            int32_t u_spotLight_Direction[kMaxLights]{};
-            int32_t u_spotLight_Falloff[kMaxLights]{};
-            int32_t u_spotLight_Cutoff[kMaxLights]{};
-            int32_t u_spotLight_Position[kMaxLights]{};
+        int32_t u_spotLight_Intensity[kMaxLights]{};
+        int32_t u_spotLight_Radiance[kMaxLights]{};
+        int32_t u_spotLight_Direction[kMaxLights]{};
+        int32_t u_spotLight_Falloff[kMaxLights]{};
+        int32_t u_spotLight_Cutoff[kMaxLights]{};
+        int32_t u_spotLight_Position[kMaxLights]{};
     };
 }

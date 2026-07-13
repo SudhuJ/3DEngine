@@ -1,0 +1,254 @@
+ENTITIES:
+  - InfoComponent:
+      UID: 1300414873348577780
+      Name: Entity9
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 54, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 5496786558034285174
+      Name: Entity8
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 48, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 6431028457677851657
+      Name: Entity7
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 42, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 5509721260088169680
+      Name: Entity6
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 36, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 15175316389469700131
+      Name: Entity5
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 30, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 9528465775194236728
+      Name: Entity4
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 24, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 1600487124544092114
+      Name: Entity3
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 18, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 15273149867295640817
+      Name: Entity2
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 12, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 9246738911969554915
+      Name: Entity1
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 6, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 1254402778105364117
+      Name: Entity0
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 0, -10]
+      Rotation: [0, 0, 0]
+      Scale: [5, 5, 5]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: true
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 17073019268396470663
+      Name: Entity
+      Parent: 0
+    TransformComponent:
+      Translate: [0, -15, -50]
+      Rotation: [0, 0, 0]
+      Scale: [100, 1, 100]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: false
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0
+      Restitution: 0.1
+      Type: BOX
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 12932522913034027588
+  - InfoComponent:
+      UID: 6599680463430738638
+      Name: Entity
+      Parent: 0
+    TransformComponent:
+      Translate: [0, -14.99, -15]
+      Rotation: [0, 0, 0]
+      Scale: [0.1, 0.1, 0.1]
+    ModelComponent:
+      Material: 14743963061169606364
+      Model: 167418884110904870
+  - InfoComponent:
+      UID: 3816987521578614417
+      Name: Entity
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 1, -1]
+      Scale: [1, 1, 1]
+    DirectLightComponent:
+      Intensity: 1
+      Radiance: [1, 1, 1]
+  - InfoComponent:
+      UID: 6134393789177443674
+      Name: Entity
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SkyboxComponent:
+      Skybox: 1812988536600596634
+  - InfoComponent:
+      UID: 15181465381780289135
+      Name: Entity
+      Parent: 0
+    CameraComponent:
+      NearPlane: 0.3
+      FarPlane: 500
+      FOV: 0.7853982
+    TransformComponent:
+      Translate: [0, 0, 20]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]

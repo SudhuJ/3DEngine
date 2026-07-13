@@ -34,7 +34,7 @@ namespace flow {
             if (!object.valid()) {
                 sol::error error = object;
                 sol::call_status status = object.status();
-                FLOW_ERROR("Failed to create script: {]", error.what());
+                FLOW_ERROR("Failed to create script: {}", error.what());
                 return false;
             }
             entity.Attach<scriptComponent>().Instance = std::make_unique<Script>(object, name);

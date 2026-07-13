@@ -7,6 +7,7 @@ cmake-build*/
 
 # Conan / virtual env
 flow/
+imgui.ini
 
 # IDE / editor
 CMakeUserPresets.json

@@ -72,8 +72,8 @@ namespace flow {
             }
 
         protected:
-            uint32_t m_ShaderID = 0u;
-            uint32_t m_VertexProgID = 0u;
-            uint32_t m_FragmentProgID = 0u;
+            uint32_t m_ShaderID = 0;
+            uint32_t m_VertexProgID = 0;
+            uint32_t m_FragmentProgID = 0;
     };
 }

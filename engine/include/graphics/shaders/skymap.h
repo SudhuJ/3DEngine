@@ -65,8 +65,8 @@ namespace flow {
         }
 
         private:
-            int32_t u_view = -1;
-            int32_t u_proj = -1;
-            int32_t u_map = -1;
+            uint32_t u_view = 0;
+            uint32_t u_proj = 0;
+            uint32_t u_map = 0;
     };
 }

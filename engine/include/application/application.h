@@ -14,11 +14,13 @@ namespace flow {
 
         FLOW_INLINE ~Application()
         {
+            for (auto layer : m_Context->Layers){
+                FLOW_DELETE(layer);
+            }
             FLOW_DELETE(m_Context);
         }
 
         FLOW_INLINE void runContext(){
-
             while(m_Context->Window->pollEvents()) {
                 UpdateDeltaTime();
                 UpdateScene();
@@ -28,10 +30,6 @@ namespace flow {
         }
 
         private:
-            // FLOW_INLINE void renderSceneDepth() {
-            //
-            // }
-
             FLOW_INLINE void RegisterCallbacks() {
                 m_Context->Physics->setEventCallback([this](auto e) {
                     // scripting
@@ -83,7 +81,8 @@ namespace flow {
             FLOW_INLINE void UpdateDeltaTime() {
                 static double sLastTime = glfwGetTime();
                 double currentTime = glfwGetTime();
-                m_Context->deltaTime = currentTime - sLastTime;
+                // clamp time to prevent physics during resize
+                m_Context->deltaTime = glm::min(currentTime - sLastTime, 1.0 / 30.0);
                 sLastTime = currentTime;
             }
 
@@ -145,6 +144,9 @@ namespace flow {
                     tc.Translate = glm::vec3(0.0f, 6.0f * i, -10.0f);
                     tc.Scale *= 5.0f;
                 }
+
+                m_Context->Serializer->Serialize(*m_Context->Assets, "resources/projects/assets.yaml");
+                m_Context->Serializer->Serialize(m_Context->Scene, "resources/projects/scene.yaml");
             }
 
             FLOW_INLINE void RenderScene() {
@@ -216,8 +218,8 @@ namespace flow {
             FLOW_INLINE void StartScene() {
                 CreateEntities();
                 // serializer
-                // m_Context->Serializer->Deserialize(*m_Context->Assets, "");
-                // m_Context->Serializer->Deserialize(m_Context->Scene, "");
+                m_Context->Serializer->Deserialize(*m_Context->Assets, "resources/projects/assets.yaml");
+                m_Context->Serializer->Deserialize(m_Context->Scene, "resources/projects/scene.yaml");
 
                 enttView<Entity, skyboxComponent>([this] (auto entity, auto& comp) {
                     auto& skybox = m_Context->Assets->Get<SkyboxAsset>(comp.Sky);
@@ -256,7 +258,9 @@ namespace flow {
                 for (auto layer : m_Context->Layers) {
                     layer->onUpdate();
                 }
-                m_Context->Renderer->showFrame();
+                if (m_Context->Layers.size() == 0) {
+                    m_Context->Renderer->showFrame();
+                }
             }
     };
 }

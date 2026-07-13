@@ -1,6 +1,9 @@
 #include <flow.h>
 
-int main(int argc, char* argv[]) {
-    FLOW_INFO("Game Started.");
+int main(int32_t argc, char* argv[]) {
+    using namespace flow;
+    auto app = new Application();
+    app->runContext();
+    FLOW_DELETE(app);
     return 0;
 }

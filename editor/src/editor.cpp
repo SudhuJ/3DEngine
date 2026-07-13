@@ -1,4 +1,11 @@
 #include <flow.h>
+#include "windows/hierarchy.h"
+#include "windows/inspector.h"
+#include "windows/menubar.h"
+#include "windows/resource.h"
+#include "windows/viewport.h"
+
+#include "../../engine/include/application/application.h"
 
 using namespace flow;
 
@@ -25,14 +32,29 @@ struct myLayer : public appInterface {
         int32_t m_Counter = 0;
 };
 
+
+struct Editor : GuiContext {
+    FLOW_INLINE void onGUIStart() {
+        postEvent<SelectEvent>((entityID)4);
+        AttachWindow<HierarchyWindow>();
+        AttachWindow<InspectorWindow>();
+        AttachWindow<ResourceWindow>();
+        AttachWindow<MenuBarWindow>();
+        AttachWindow<ViewportWindow>();
+    }
+
+    FLOW_INLINE void onGUIFrame() {
+
+    }
+};
+
 int32_t main(int32_t argc, char* argv[]) {
     FLOW_INFO("Editor Started.");
 
     auto app = new Application();
-    app->attachCallback<keyPressEvent>([](auto e) {
-        FLOW_INFO("Key pressed: {}", e.key);
-    });
-    app->attachLayer<myLayer>();
+    app->attachLayer<Editor>();
     app->runContext();
+    // app->~Application();
+    FLOW_DELETE(app);
     return 0;
 }

@@ -1,0 +1,47 @@
+ASSETS:
+  - UID: 12932522913034027588
+    Type: MODEL
+    Name: cube
+    Source: resources/models/cube.fbx
+    Properties:
+      HasJoints: false
+  - UID: 7364778131014715401
+    Type: MODEL
+    Name: sphere
+    Source: resources/models/sphere.fbx
+    Properties:
+      HasJoints: false
+  - UID: 167418884110904870
+    Type: MODEL
+    Name: walking
+    Source: resources/models/walking.fbx
+    Properties:
+      HasJoints: true
+  - UID: 6808641734749776189
+    Type: SCRIPT
+    Name: testScript
+    Source: resources/scripts/testScript.lua
+  - UID: 1812988536600596634
+    Type: SKYBOX
+    Name: sky
+    Source: resources/textures/sky.hdr
+    Properties:
+      IsHDR: true
+      FlipV: true
+      Size: 2048
+  - UID: 14743963061169606364
+    Type: MATERIAL
+    Name: Nimrod
+    Source: Nimrod
+    Properties:
+      RoughnessMap: 0
+      OcclusionMap: 0
+      EmissiveMap: 0
+      MetallicMap: 0
+      AlbedoMap: 0
+      NormalMap: 0
+      Roughness: 0.5
+      Occlusion: 1
+      Metallic: 0.2
+      Emissive: [0, 0, 0]
+      Albedo: [0, 1, 1]

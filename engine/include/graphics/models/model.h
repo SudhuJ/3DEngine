@@ -58,8 +58,10 @@ namespace flow {
                     shadedVertex vertex;
                     vertex.Position = assimptoVec3(ai_Mesh->mVertices[i]);
                     vertex.Normal = assimptoVec3(ai_Mesh->mNormals[i]);
-                    vertex.UVs.x = ai_Mesh->mTextureCoords[0][i].x;
-                    vertex.UVs.y = ai_Mesh->mTextureCoords[0][i].y;
+                    if (ai_Mesh->HasTextureCoords(0)) {
+                        vertex.UVs.x = ai_Mesh->mTextureCoords[0][i].x;
+                        vertex.UVs.y = ai_Mesh->mTextureCoords[0][i].y;
+                    }
                     vertex.Tangent = glm::normalize(assimptoVec3(ai_Mesh->mTangents[i]));
                     vertex.Bitangent = glm::normalize(assimptoVec3(ai_Mesh->mBitangents[i]));
                     data.vertices.push_back(vertex);
@@ -70,7 +72,7 @@ namespace flow {
                         data.indices.push_back(ai_Mesh->mFaces[i].mIndices[j]);
                     }
                 }
-                auto mesh = std::make_unique<shadedMesh>(data);
+                auto mesh = std::make_shared<shadedMesh>(data);
                 m_Meshes.push_back(std::move(mesh));
             }
 
@@ -166,8 +168,10 @@ namespace flow {
                     skeletalVertex vertex;
                     vertex.Position = assimptoVec3(ai_Mesh->mVertices[i]);
                     vertex.Normal = assimptoVec3(ai_Mesh->mNormals[i]);
-                    vertex.UVs.x = ai_Mesh->mTextureCoords[0][i].x;
-                    vertex.UVs.y = ai_Mesh->mTextureCoords[0][i].y;
+                    if (ai_Mesh->HasTextureCoords(0)) {
+                        vertex.UVs.x = ai_Mesh->mTextureCoords[0][i].x;
+                        vertex.UVs.y = ai_Mesh->mTextureCoords[0][i].y;
+                    }
                     vertex.Tangent = glm::normalize(assimptoVec3(ai_Mesh->mTangents[i]));
                     vertex.Bitangent = glm::normalize(assimptoVec3(ai_Mesh->mBitangents[i]));
                     data.vertices.push_back(vertex);

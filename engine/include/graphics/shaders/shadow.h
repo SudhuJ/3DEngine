@@ -43,11 +43,13 @@ namespace flow {
             glViewport(0, 0, m_mapSize, m_mapSize);
             glClear(GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);
+            glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT); // reduces peter-panning
         }
 
         FLOW_INLINE void endFrame() {
             glCullFace(GL_BACK);
+            glDisable(GL_CULL_FACE);
             glDisable(GL_DEPTH_TEST);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
@@ -57,11 +59,11 @@ namespace flow {
         }
 
         private:
-            uint32_t m_Framebuffer = -1;
-            uint32_t m_Depthmap = -1;
+            uint32_t m_Framebuffer = 0;
+            uint32_t m_Depthmap = 0;
+            uint32_t u_lightSpace = 0;
+            int32_t u_Model = 0;
 
             int32_t m_mapSize = 2048;
-            int32_t u_lightSpace = 0u;
-            int32_t u_Model = 0u;
     };
 }

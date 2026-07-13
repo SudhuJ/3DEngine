@@ -39,9 +39,11 @@ namespace flow {
         }
 
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
+
+            if (width < 1 || height < 1) return;
+
             m_Width = width;
             m_Height = height;
-
             glDeleteTextures(1, &m_Color);
             glDeleteTextures(1, &m_Brightness);
             glDeleteRenderbuffers(1, &m_Render);
@@ -49,6 +51,13 @@ namespace flow {
             createColorAttachment();
             createBrightnessAttachment();
             createRenderAttachment();
+
+            uint32_t attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+            glNamedFramebufferDrawBuffers(m_BufferID, 2, attachments);
+
+            if (glCheckNamedFramebufferStatus(m_BufferID, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                FLOW_ERROR("glCheckNamedFramebufferStatus() Failed to Initializer.");
+            }
         }
 
         FLOW_INLINE uint32_t getTexture() {

@@ -12,6 +12,7 @@ sol2/3.5.0
 lua/5.4.6
 yaml-cpp/0.9.0
 magic_enum/0.9.7
+imgui/1.92.8
 
 [options]
 glfw/*:shared=False
@@ -21,6 +22,10 @@ glad/*:api=gl=4.5
 glad/*:profile=core
 physx/*:shared=True
 yaml-cpp/*:shared=True
+
+imgui/*:with_glfw=True
+imgui/*:with_opengl3=True
+imgui/*:with_docking=True
 
 [generators]
 CMakeDeps

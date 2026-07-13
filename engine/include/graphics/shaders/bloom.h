@@ -15,6 +15,9 @@ namespace flow {
 
             m_Quad = createQuad2D();
 
+            m_OrigWidth = width;
+            m_OrigHeight = height;
+
             m_Height = height / m_Scale;
             m_Width = width / m_Scale;
 
@@ -32,12 +35,22 @@ namespace flow {
                 glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
                 glNamedFramebufferTexture(m_FrameBuffer[i], GL_COLOR_ATTACHMENT0, m_PingPongMaps[i], 0);
+                glNamedFramebufferDrawBuffer(m_FrameBuffer[i], GL_COLOR_ATTACHMENT0);
+
+                if (glCheckNamedFramebufferStatus(m_FrameBuffer[i], GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                    FLOW_ERROR("Bloom framebuffer {} is not complete after Resize!", i);
+                }
             }
         }
 
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
+            m_OrigWidth = width;
+            m_OrigHeight = height;
             m_Width = width / m_Scale;
             m_Height = height / m_Scale;
+
+            if (m_Width < 1 || m_Height < 1) return;
+
             for (auto i = 0; i < 2; i++) {
                 glDeleteTextures(1, &m_PingPongMaps[i]);
                 glCreateTextures(GL_TEXTURE_2D, 1, &m_PingPongMaps[i]);
@@ -47,6 +60,9 @@ namespace flow {
                 glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTextureParameteri(m_PingPongMaps[i], GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 glNamedFramebufferTexture(m_FrameBuffer[i], GL_COLOR_ATTACHMENT0, m_PingPongMaps[i], 0);
+                if (glCheckNamedFramebufferStatus(m_FrameBuffer[i], GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                    FLOW_ERROR("Bloom framebuffer {} is not complete after Resize!", i);
+                }
             }
         }
 
@@ -78,19 +94,24 @@ namespace flow {
 
             Unbind();
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(0, 0, m_OrigWidth, m_OrigHeight);
         }
 
         private:
-            int32_t u_brightnessMap = -1;
-            int32_t u_horizontalPass = -1;
-            int32_t u_frameWidth = -1;
-            int32_t u_frameHeight = -1;
+            uint32_t u_brightnessMap = 0;
+            uint32_t u_horizontalPass = 0;
+            uint32_t u_frameWidth = 0;
+            uint32_t u_frameHeight = 0;
 
             uint32_t m_PingPongMaps[2];
             uint32_t m_FrameBuffer[2];
+
             int32_t m_Height = 0;
             int32_t m_Width = 0;
             int32_t m_Scale = 5;
+
+            int32_t m_OrigWidth = 0;
+            int32_t m_OrigHeight = 0;
 
             quad2D m_Quad;
     };

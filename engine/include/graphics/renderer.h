@@ -26,7 +26,7 @@ namespace flow {
                 exit(EXIT_FAILURE);
             }
             m_Frame = std::make_unique<frameBuffer>(width, height);
-            m_Final = std::make_unique<finalShader>("resources/shaders/final.vert", "resources/shaders/final.frag");
+            m_Final = std::make_unique<finalShader>("resources/shaders/final.vert", "resources/shaders/final.frag", width, height);
             m_PBR = std::make_unique<PBRShader>("resources/shaders/pbr.vert", "resources/shaders/pbr.frag");
             m_Prefil = std::make_unique<PrefilteredShader>("resources/shaders/prefiltered.vert", "resources/shaders/prefiltered.frag");
             m_BRDF = std::make_unique<BRDFShader>("resources/shaders/brdf.vert", "resources/shaders/brdf.frag");
@@ -115,19 +115,20 @@ namespace flow {
 
         FLOW_INLINE void newFrame() {
             m_Frame->Begin();
-            m_PBR->Bind();
-        }
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+            m_PBR->Bind();                }
 
         FLOW_INLINE void endFrame() {
             m_PBR->Unbind();
             m_Frame->End();
             processBloom();
-            m_Final->Show(m_Frame->getTexture(), m_Bloom->getMap());
+            // m_Final->Render(m_Frame->getTexture(), m_Bloom->getMap(), true);
         }
 
         FLOW_INLINE void showFrame() {
             glViewport(0, 0, m_Frame->getWidth(), m_Frame->getHeight());
-            m_Final->Show(m_Frame->getTexture(), m_Bloom->getMap());
+            m_Final->Render(m_Frame->getTexture(), m_Bloom->getMap());
         }
 
         FLOW_INLINE void Draw(model3D& model, Material& material, transform3D& transform) {

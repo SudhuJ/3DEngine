@@ -9,6 +9,7 @@
 
 #include "auxillaries/ECS.h"
 #include "auxillaries/assets.h"
+#include "auxillaries/serializer.h"
 // #include "interface.h"
 
 namespace flow {
@@ -22,18 +23,15 @@ namespace flow {
             Renderer = std::make_unique<graphicsRenderer>(1280, 720);
             Physics = std::make_unique<physicsContext>();
             Assets = std::make_unique<AssetRegistry>();
+            Serializer = std::make_unique<DataSerializer>();
 
             deltaTime = 0.0;
         }
 
         FLOW_INLINE ~appContext() {
-            for (auto& layer : Layers) {
-                #pragma GCC diagnostic push
-                #pragma GCC diagnostic ignored "-Wdelete-incomplete"
-                    FLOW_DELETE(layer);
-                #pragma GCC diagnostic pop
-
-            }
+            // for (auto& layer : Layers) {
+            //     FLOW_DELETE(layer);
+            // }
             Layers.clear();
         }
 
@@ -44,6 +42,7 @@ namespace flow {
         std::unique_ptr<physicsContext> Physics;
         std::unique_ptr<ScriptContext> Scripts;
         std::unique_ptr<AssetRegistry> Assets;
+        std::unique_ptr<DataSerializer> Serializer;
         entityRegistry Scene;
         double deltaTime;
 

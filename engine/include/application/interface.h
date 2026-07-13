@@ -22,7 +22,7 @@ namespace flow {
                 return nullptr;
             }
 
-                // create and attach layer
+            // create and attach layer
             auto layer = new Layer(std::forward<Args>(args)...);
             m_Context->Layers.push_back(layer);
             layer->m_LayerID = TypeID<Layer>();
@@ -47,6 +47,14 @@ namespace flow {
                         return false;
                     }
                 ), m_Context->Layers.end());
+            });
+        }
+
+        // asset view
+        template<typename Task>
+        FLOW_INLINE void AssetView(Task&& task) {
+            m_Context->Assets->View([&] (auto asset) {
+                task(asset);
             });
         }
 
@@ -93,6 +101,14 @@ namespace flow {
             m_Context->Scene.view<Comp>().each([this, &task](auto entity, auto& comp) {
                 task(toEntt<Entt>(entity), comp);
             });
+        }
+
+        FLOW_INLINE GLFWwindow* GetWindowHandle() {
+            return m_Context->Window->getHandle();
+        }
+
+        FLOW_INLINE uint32_t GetSceneFrame() {
+            return m_Context->Renderer->getFrame();
         }
 
         protected:
