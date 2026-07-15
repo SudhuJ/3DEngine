@@ -27,9 +27,9 @@ namespace flow {
         }
 
         private:
-            uint32_t u_Model = 0;
-            uint32_t u_View = 0;
-            uint32_t u_Proj = 0;
-            uint32_t u_Map = 0;
+            int32_t u_Model = 0;
+            int32_t u_View = 0;
+            int32_t u_Proj = 0;
+            int32_t u_Map = 0;
     };
 }

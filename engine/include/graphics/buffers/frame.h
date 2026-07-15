@@ -15,7 +15,7 @@ namespace flow {
             glNamedFramebufferDrawBuffers(m_BufferID, 2, attachments);
 
             if (glCheckNamedFramebufferStatus(m_BufferID, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-                FLOW_ERROR("glCheckNamedFramebufferStatus() Failed after Resize.");
+                FLOW_ERROR("glCheckNamedFramebufferStatus() Failed in Constructor.");
             }
         }
 

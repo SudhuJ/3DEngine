@@ -29,7 +29,7 @@ namespace flow {
             aiProcess_ImproveCacheLocality | aiProcess_FixInfacingNormals |
             aiProcess_GenUVCoords | aiProcess_FlipUVs;
             const aiScene* ai_Scene = importer.ReadFile(path, flags);
-            if (!ai_Scene || ai_Scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !ai_Scene->mRootNode) {
+            if (!ai_Scene || (ai_Scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !ai_Scene->mRootNode) {
                 FLOW_ERROR("Failed to load model: {}", importer.GetErrorString());
                 return;
             }
@@ -57,13 +57,13 @@ namespace flow {
                 for (uint32_t i = 0; i < ai_Mesh->mNumVertices; i++) {
                     shadedVertex vertex;
                     vertex.Position = assimptoVec3(ai_Mesh->mVertices[i]);
-                    vertex.Normal = assimptoVec3(ai_Mesh->mNormals[i]);
+                    vertex.Normal = ai_Mesh->mNormals ? assimptoVec3(ai_Mesh->mNormals[i]) : glm::vec3(0.0f);
                     if (ai_Mesh->HasTextureCoords(0)) {
                         vertex.UVs.x = ai_Mesh->mTextureCoords[0][i].x;
                         vertex.UVs.y = ai_Mesh->mTextureCoords[0][i].y;
                     }
-                    vertex.Tangent = glm::normalize(assimptoVec3(ai_Mesh->mTangents[i]));
-                    vertex.Bitangent = glm::normalize(assimptoVec3(ai_Mesh->mBitangents[i]));
+                    vertex.Tangent = ai_Mesh->mTangents ? glm::normalize(assimptoVec3(ai_Mesh->mTangents[i])) : glm::vec3(0.0f);
+                    vertex.Bitangent = ai_Mesh->mBitangents ? glm::normalize(assimptoVec3(ai_Mesh->mBitangents[i])) : glm::vec3(0.0f);
                     data.vertices.push_back(vertex);
                 }
 
@@ -106,7 +106,7 @@ namespace flow {
             aiProcess_FlipUVs | aiProcess_GenUVCoords |
             aiProcess_LimitBoneWeights;
             const aiScene* ai_Scene = importer.ReadFile(path, flags);
-            if (!ai_Scene || ai_Scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !ai_Scene->mRootNode) {
+            if (!ai_Scene || (ai_Scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !ai_Scene->mRootNode) {
                 FLOW_ERROR("Failed to load model: {}", importer.GetErrorString());
                 return;
             }
@@ -167,13 +167,13 @@ namespace flow {
                 for (uint32_t i = 0; i < ai_Mesh->mNumVertices; i++) {
                     skeletalVertex vertex;
                     vertex.Position = assimptoVec3(ai_Mesh->mVertices[i]);
-                    vertex.Normal = assimptoVec3(ai_Mesh->mNormals[i]);
+                    vertex.Normal = ai_Mesh->mNormals ? assimptoVec3(ai_Mesh->mNormals[i]) : glm::vec3(0.0f);
                     if (ai_Mesh->HasTextureCoords(0)) {
                         vertex.UVs.x = ai_Mesh->mTextureCoords[0][i].x;
                         vertex.UVs.y = ai_Mesh->mTextureCoords[0][i].y;
                     }
-                    vertex.Tangent = glm::normalize(assimptoVec3(ai_Mesh->mTangents[i]));
-                    vertex.Bitangent = glm::normalize(assimptoVec3(ai_Mesh->mBitangents[i]));
+                    vertex.Tangent = ai_Mesh->mTangents ? glm::normalize(assimptoVec3(ai_Mesh->mTangents[i])) : glm::vec3(0.0f);
+                    vertex.Bitangent = ai_Mesh->mBitangents ? glm::normalize(assimptoVec3(ai_Mesh->mBitangents[i])) : glm::vec3(0.0f);
                     data.vertices.push_back(vertex);
                 }
 

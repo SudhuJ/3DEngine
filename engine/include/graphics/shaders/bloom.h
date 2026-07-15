@@ -43,6 +43,13 @@ namespace flow {
             }
         }
 
+        FLOW_INLINE ~BloomShader() {
+            for (auto i = 0; i < 2; i++) {
+                glDeleteTextures(1, &m_PingPongMaps[i]);
+                glDeleteFramebuffers(1, &m_FrameBuffer[i]);
+            }
+        }
+
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
             m_OrigWidth = width;
             m_OrigHeight = height;
@@ -98,10 +105,10 @@ namespace flow {
         }
 
         private:
-            uint32_t u_brightnessMap = 0;
-            uint32_t u_horizontalPass = 0;
-            uint32_t u_frameWidth = 0;
-            uint32_t u_frameHeight = 0;
+            int32_t u_brightnessMap = 0;
+            int32_t u_horizontalPass = 0;
+            int32_t u_frameWidth = 0;
+            int32_t u_frameHeight = 0;
 
             uint32_t m_PingPongMaps[2];
             uint32_t m_FrameBuffer[2];

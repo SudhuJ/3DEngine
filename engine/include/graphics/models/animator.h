@@ -20,6 +20,12 @@ namespace flow {
         }
 
         FLOW_INLINE void getPrevNextFrames(Joint& joint, keyFrame& prev, keyFrame& next) {
+            if (joint.Keys.empty()) return;
+            if (joint.Keys.size() == 1) {
+                prev = joint.Keys[0];
+                next = joint.Keys[0];
+                return;
+            }
             for (uint32_t i=1u; i<joint.Keys.size(); i++) {
                 if (joint.Keys[i].timeStamp > m_Time) {
                     prev = joint.Keys[i-1];
@@ -27,12 +33,23 @@ namespace flow {
                     return;
                 }
             }
+            prev = joint.Keys[joint.Keys.size() - 2];
+            next = joint.Keys[joint.Keys.size() - 1];
         }
 
         FLOW_INLINE void UpdateJoints(Joint& joint, const glm::mat4& parentTransform) {
             keyFrame prev, next;
             getPrevNextFrames(joint, prev, next);
-            float progress = (m_Time - prev.timeStamp) / (next.timeStamp - prev.timeStamp);
+            if (joint.Keys.empty()) {
+                m_Transforms[joint.Index] = parentTransform * m_GlobalTransform * joint.Offset;
+                for (auto& child : joint.Children) {
+                    UpdateJoints(child, parentTransform);
+                }
+                return;
+            }
+            float denom = next.timeStamp - prev.timeStamp;
+            float progress = (denom > 0.0f) ? (m_Time - prev.timeStamp) / denom : 0.0f;
+            progress = glm::clamp(progress, 0.0f, 1.0f);
             glm::mat4 transform = parentTransform * Interpolate(prev, next, progress);
             m_Transforms[joint.Index] = transform * m_GlobalTransform * joint.Offset;
             for (auto& child : joint.Children) {
@@ -45,8 +62,6 @@ namespace flow {
             std::vector<Animation> m_Animations;
             std::vector<glm::mat4> m_Transforms;
             glm::mat4 m_GlobalTransform;
-            JointMatrices m_Joints;
-
             int32_t m_Sequence = 0;
             float m_Time = 0.0f;
             Joint m_Root;

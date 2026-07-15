@@ -9,7 +9,6 @@ namespace flow {
             return glm::translate(glm::mat4(1.0f), Translate) *
             glm::toMat4(glm::quat(glm::radians(Rotate))) *
             glm::scale(glm::mat4(1.0f), Scale);
-
         }
         glm::vec3 Translate = glm::vec3(0.0f);
         glm::vec3 Rotate = glm::vec3(0.0f);
@@ -84,7 +83,16 @@ namespace flow {
 
     struct Skybox {
         FLOW_INLINE Skybox() = default;
-        FLOW_INLINE Skybox(const Skybox&) = default;
+
+        FLOW_INLINE ~Skybox() {
+            if (m_CubeMap) glDeleteTextures(1, &m_CubeMap);
+            if (IrradianceMap) glDeleteTextures(1, &IrradianceMap);
+            if (PrefilteredMap) glDeleteTextures(1, &PrefilteredMap);
+            if (BRDFMap) glDeleteTextures(1, &BRDFMap);
+        }
+
+        FLOW_INLINE Skybox(const Skybox&) = delete;
+        FLOW_INLINE Skybox& operator=(const Skybox&) = delete;
 
         uint32_t m_CubeMap = 0;
         uint32_t IrradianceMap = 0;

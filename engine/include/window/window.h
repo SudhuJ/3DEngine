@@ -57,7 +57,6 @@ namespace flow {
 
         FLOW_INLINE ~appWindow() {
             glfwDestroyWindow(m_Handle);
-            // glfwTerminate();
         }
 
         FLOW_INLINE GLFWwindow* getHandle() {

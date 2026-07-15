@@ -42,6 +42,16 @@ namespace flow {
         v2.UVs = glm::vec2(1.0f, 1.0f);
         v3.UVs = glm::vec2(0.0f, 1.0f);
 
+        v0.Tangent = glm::vec3(0.0f);
+        v1.Tangent = glm::vec3(0.0f);
+        v2.Tangent = glm::vec3(0.0f);
+        v3.Tangent = glm::vec3(0.0f);
+
+        v0.Bitangent = glm::vec3(0.0f);
+        v1.Bitangent = glm::vec3(0.0f);
+        v2.Bitangent = glm::vec3(0.0f);
+        v3.Bitangent = glm::vec3(0.0f);
+
         data.vertices = {v0, v1, v2, v3};
         data.indices = {
             0, 1, 2,

@@ -20,12 +20,12 @@ namespace flow {
             FLOW_DELETE(m_Context);
         }
 
-        FLOW_INLINE void runContext(){
+        FLOW_INLINE void runContext(bool showFrame = true){
             while(m_Context->Window->pollEvents()) {
                 UpdateDeltaTime();
                 UpdateScene();
                 RenderScene();
-                UpdateLayers();
+                UpdateLayers(showFrame);
             }
         }
 
@@ -216,7 +216,6 @@ namespace flow {
             }
 
             FLOW_INLINE void StartScene() {
-                CreateEntities();
                 // serializer
                 m_Context->Serializer->Deserialize(*m_Context->Assets, "resources/projects/assets.yaml");
                 m_Context->Serializer->Deserialize(m_Context->Scene, "resources/projects/scene.yaml");
@@ -254,13 +253,11 @@ namespace flow {
                 });
             }
 
-            FLOW_INLINE void UpdateLayers() {
+            FLOW_INLINE void UpdateLayers(bool showFrame) {
                 for (auto layer : m_Context->Layers) {
                     layer->onUpdate();
                 }
-                if (m_Context->Layers.size() == 0) {
-                    m_Context->Renderer->showFrame();
-                }
+                m_Context->Renderer->showFrame(showFrame);
             }
     };
 }

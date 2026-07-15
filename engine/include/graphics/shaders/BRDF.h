@@ -10,7 +10,7 @@ namespace flow {
         }
 
         FLOW_INLINE uint32_t Generate(int32_t size) {
-            uint32_t BRDFMap = -1;
+            uint32_t BRDFMap = 0;
             glCreateTextures(GL_TEXTURE_2D, 1, &BRDFMap);
             glTextureStorage2D(BRDFMap, 1, GL_RG16F, size, size);
 
@@ -19,7 +19,7 @@ namespace flow {
             glTextureParameteri(BRDFMap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTextureParameteri(BRDFMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-            uint32_t FBO = -1;
+            uint32_t FBO = 0;
             glCreateFramebuffers(1, &FBO);
             glNamedFramebufferTexture(FBO, GL_COLOR_ATTACHMENT0, BRDFMap, 0);
 

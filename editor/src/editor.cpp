@@ -53,7 +53,7 @@ int32_t main(int32_t argc, char* argv[]) {
 
     auto app = new Application();
     app->attachLayer<Editor>();
-    app->runContext();
+    app->runContext(false);
     // app->~Application();
     FLOW_DELETE(app);
     return 0;

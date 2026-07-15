@@ -110,25 +110,28 @@ namespace flow {
         }
 
         FLOW_INLINE uint32_t getFrame() {
-            return m_Frame->getTexture();
+            return m_Final->getMap();
         }
 
         FLOW_INLINE void newFrame() {
             m_Frame->Begin();
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
-            m_PBR->Bind();                }
+            m_PBR->Bind();
+        }
 
         FLOW_INLINE void endFrame() {
             m_PBR->Unbind();
             m_Frame->End();
             processBloom();
             // m_Final->Render(m_Frame->getTexture(), m_Bloom->getMap(), true);
+            glDisable(GL_CULL_FACE);
         }
 
-        FLOW_INLINE void showFrame() {
+        FLOW_INLINE void showFrame(bool useFBO) {
+            glDisable(GL_CULL_FACE);
             glViewport(0, 0, m_Frame->getWidth(), m_Frame->getHeight());
-            m_Final->Render(m_Frame->getTexture(), m_Bloom->getMap());
+            m_Final->Render(m_Frame->getTexture(), m_Bloom->getMap(), useFBO);
         }
 
         FLOW_INLINE void Draw(model3D& model, Material& material, transform3D& transform) {

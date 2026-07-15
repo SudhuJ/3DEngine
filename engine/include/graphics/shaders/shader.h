@@ -67,6 +67,10 @@ namespace flow {
                 }
                 catch (const std::exception& e) {
                     FLOW_ERROR("Load('{}/{}') Pipeline Link Failure: {}", vertFile, fragFile, e.what());
+                    if (m_VertexProgID) glDeleteProgram(m_VertexProgID);
+                    if (m_FragmentProgID) glDeleteProgram(m_FragmentProgID);
+                    m_VertexProgID = 0;
+                    m_FragmentProgID = 0;
                 }
                 return 0u;
             }

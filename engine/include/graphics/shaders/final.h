@@ -17,10 +17,10 @@ namespace flow {
             glDeleteFramebuffers(1, &m_FBO);
         }
 
-        FLOW_INLINE void Render(uint32_t map, uint32_t bloom) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glClearColor(0, 0, 0, 1);
+        FLOW_INLINE void Render(uint32_t map, uint32_t bloom, bool useFBO) {
+            glBindFramebuffer(GL_FRAMEBUFFER, useFBO ? 0 : m_FBO);
             glClear(GL_COLOR_BUFFER_BIT);
+            glClearColor(0, 0, 0, 1);
 
             Bind();
             glBindTextureUnit(0, map);
@@ -33,26 +33,9 @@ namespace flow {
             Unbind();
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        }
-
-        FLOW_INLINE void Show(uint32_t map, uint32_t bloom) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glClearColor(0, 0, 0, 1);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            Bind();
-            glBindTextureUnit(0, map);
-            glProgramUniform1i(m_FragmentProgID, u_Map, 0);
-
-            glBindTextureUnit(1, bloom);
-            glProgramUniform1i(m_FragmentProgID, u_Bloom, 1);
-
-            m_Quad->Draw(GL_TRIANGLES);
-            Unbind();
         }
 
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
-
             if (width < 1 || height < 1) return;
 
             glDeleteTextures(1, &m_Final);
@@ -88,8 +71,8 @@ namespace flow {
     private:
         uint32_t m_Final = 0u;
         uint32_t m_FBO = 0u;
-        uint32_t u_Map = 0u;
-        int32_t u_Bloom = 0u;
+        int32_t u_Map = 0;
+        int32_t u_Bloom = 0;
 
         quad2D m_Quad;
     };

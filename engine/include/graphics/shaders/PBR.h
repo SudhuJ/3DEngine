@@ -137,14 +137,17 @@ namespace flow {
         }
 
         FLOW_INLINE void setJoints(std::vector<glm::mat4>& transforms) {
+            if (m_JointLocations.size() != transforms.size()) {
+                m_JointLocations.resize(transforms.size());
+                for (size_t i = 0; i < transforms.size(); ++i) {
+                    std::string uniform = "u_joints[" + std::to_string(i) + "]";
+                    m_JointLocations[i] = glGetUniformLocation(m_VertexProgID, uniform.c_str());
+                }
+            }
             for (size_t i = 0; i < transforms.size(); ++i) {
-                std::string uniform = "u_joints[" + std::to_string(i) + "]";
-                GLint loc = glGetUniformLocation(m_VertexProgID, uniform.c_str());
+                GLint loc = m_JointLocations[i];
                 if (loc != -1) {
                     glProgramUniformMatrix4fv(m_VertexProgID, loc, 1, GL_FALSE, glm::value_ptr(transforms[i]));
-                }
-                else {
-                    FLOW_ERROR("u_joints Location Not Set.");
                 }
             }
         }
@@ -189,41 +192,41 @@ namespace flow {
         private:
         static constexpr int32_t kMaxLights = 10;
 
-        uint32_t u_Model = 0u;
-        uint32_t u_View = 0u;
-        uint32_t u_Proj = 0u;
-        uint32_t u_hasJoints = 0u;
+        int32_t u_Model = 0;
+        int32_t u_View = 0;
+        int32_t u_Proj = 0;
+        int32_t u_hasJoints = 0;
 
-        uint32_t u_Roughness = 0u;
-        uint32_t u_Metallic = 0u;
-        uint32_t u_Albedo = 0u;
-        uint32_t u_Emissive = 0u;
-        uint32_t u_Occlusion = 0u;
+        int32_t u_Roughness = 0;
+        int32_t u_Metallic = 0;
+        int32_t u_Albedo = 0;
+        int32_t u_Emissive = 0;
+        int32_t u_Occlusion = 0;
 
-        uint32_t u_useRoughnessMap = 0u;
-        uint32_t u_useOcclusionMap = 0u;
-        uint32_t u_useEmissiveMap = 0u;
-        uint32_t u_useMetallicMap = 0u;
-        uint32_t u_useAlbedoMap = 0u;
-        uint32_t u_useNormalMap = 0u;
+        int32_t u_useRoughnessMap = 0;
+        int32_t u_useOcclusionMap = 0;
+        int32_t u_useEmissiveMap = 0;
+        int32_t u_useMetallicMap = 0;
+        int32_t u_useAlbedoMap = 0;
+        int32_t u_useNormalMap = 0;
 
-        uint32_t u_RoughnessMap = 0u;
-        uint32_t u_OcclusionMap = 0u;
-        uint32_t u_EmissiveMap = 0u;
-        uint32_t u_MetallicMap = 0u;
-        uint32_t u_AlbedoMap = 0u;
-        uint32_t u_NormalMap = 0u;
+        int32_t u_RoughnessMap = 0;
+        int32_t u_OcclusionMap = 0;
+        int32_t u_EmissiveMap = 0;
+        int32_t u_MetallicMap = 0;
+        int32_t u_AlbedoMap = 0;
+        int32_t u_NormalMap = 0;
 
-        uint32_t u_viewPos = 0u;
-        uint32_t u_IrradianceMap = 0u;
-        uint32_t u_BRDFMap = 0u;
-        uint32_t u_PrefilteredMap = 0u;
-        uint32_t u_LightSpace = 0u;
-        uint32_t u_DepthMap = 0u;
+        int32_t u_viewPos = 0;
+        int32_t u_IrradianceMap = 0;
+        int32_t u_BRDFMap = 0;
+        int32_t u_PrefilteredMap = 0;
+        int32_t u_LightSpace = 0;
+        int32_t u_DepthMap = 0;
 
-        uint32_t u_npointLights = 0u;
-        uint32_t u_ndirectLights = 0u;
-        uint32_t u_nspotLights = 0u;
+        int32_t u_npointLights = 0;
+        int32_t u_ndirectLights = 0;
+        int32_t u_nspotLights = 0;
 
         int32_t u_pointLight_Intensity[kMaxLights]{};
         int32_t u_pointLight_Radiance[kMaxLights]{};
@@ -239,5 +242,7 @@ namespace flow {
         int32_t u_spotLight_Falloff[kMaxLights]{};
         int32_t u_spotLight_Cutoff[kMaxLights]{};
         int32_t u_spotLight_Position[kMaxLights]{};
+
+        std::vector<GLint> m_JointLocations;
     };
 }

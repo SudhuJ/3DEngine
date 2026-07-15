@@ -24,7 +24,7 @@ namespace flow {
 
             glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 
-            uint32_t irradMap = -1;
+            uint32_t irradMap = 0;
 
             glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &irradMap);
             glTextureStorage2D(irradMap, 1, GL_RGB16F, size, size);
@@ -35,7 +35,7 @@ namespace flow {
             glTextureParameteri(irradMap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTextureParameteri(irradMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-            uint32_t FBO = -1, RBO = -1;
+            uint32_t FBO = 0, RBO = 0;
 
             glCreateFramebuffers(1, &FBO);
             glCreateRenderbuffers(1, &RBO);
@@ -66,8 +66,8 @@ namespace flow {
         }
 
         private:
-            uint32_t u_view = 0;
-            uint32_t u_proj = 0;
-            uint32_t u_CubeMap = 0;
+            int32_t u_view = 0;
+            int32_t u_proj = 0;
+            int32_t u_CubeMap = 0;
     };
 }

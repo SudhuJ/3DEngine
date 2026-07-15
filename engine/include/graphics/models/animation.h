@@ -20,7 +20,7 @@ namespace flow {
         std::vector<Joint> Children;
         std::vector<keyFrame> Keys;
         std::string Name;
-        glm::mat4 Offset;
+        glm::mat4 Offset = glm::mat4(1.0f);
         int32_t Index = -1;
     };
     using JointMatrices = std::vector<glm::mat4>;

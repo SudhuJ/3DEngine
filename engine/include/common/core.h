@@ -146,4 +146,4 @@ namespace flow{
     }
 }
 
-#define FLOW_DELETE(ptr) if (ptr != nullptr){delete ptr; ptr = nullptr;}
+#define FLOW_DELETE(ptr) do { if (ptr != nullptr){delete ptr; ptr = nullptr;} } while(0)

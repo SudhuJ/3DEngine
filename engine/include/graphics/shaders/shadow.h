@@ -61,7 +61,7 @@ namespace flow {
         private:
             uint32_t m_Framebuffer = 0;
             uint32_t m_Depthmap = 0;
-            uint32_t u_lightSpace = 0;
+            int32_t u_lightSpace = 0;
             int32_t u_Model = 0;
 
             int32_t m_mapSize = 2048;

@@ -30,12 +30,13 @@ FLOW_INLINE void onShow(GuiContext* context) override {
                 });
             }
 
-            if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+            if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
                 float sensitivity = 10;
                 context->enttView<Entity, cameraComponent>([&] (auto entity, auto& comp) {
                     auto& transform = entity.template Get<transformComponent>().Transform;
-                    transform.Rotate.x += io.MouseDelta.x * io.DeltaTime * sensitivity;
-                    transform.Rotate.y += io.MouseDelta.y * io.DeltaTime * sensitivity;
+                    transform.Rotate.x += io.MouseDelta.y * io.DeltaTime * sensitivity;
+                    transform.Rotate.x = glm::clamp(transform.Rotate.x, -89.0f, 89.0f);
+                    transform.Rotate.y += io.MouseDelta.x * io.DeltaTime * sensitivity;
                 });
             }
         }

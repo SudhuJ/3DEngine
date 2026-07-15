@@ -69,15 +69,6 @@ namespace flow {
             glProgramUniform1i(program_ID, uniform, unit);
         }
 
-        FLOW_INLINE void Bind() {
-            glBindTexture(GL_TEXTURE_2D, m_ID);
-        }
-
-        FLOW_INLINE void Unbind() {
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-
-
         FLOW_INLINE operator uint32_t() const {
             return m_ID;
         }
