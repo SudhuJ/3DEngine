@@ -9,14 +9,15 @@ const float INV_PI = 0.3183098861837907;
 
 // Equirectangular Projection
 vec2 getSphericalUVs(vec3 v) {
-    vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
+    vec2 uv = vec2(atan(v.z, v.x), asin(clamp(v.y, -0.999, 0.999)));
     uv *= vec2(INV_2PI, INV_PI);
     uv += 0.5;
     return uv;
 }
 
 void main() {
-    vec2 uv = getSphericalUVs(world_Position);
+    vec3 normalized_Position = normalize(world_Position);
+    vec2 uv = getSphericalUVs(normalized_Position);
     vec3 color = texture(u_map, uv).rgb;
     out_fragment = vec4(color, 1.0);
 }
