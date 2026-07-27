@@ -23,8 +23,18 @@ struct ResourceWindow : IWidget {
 
 				// show asset icon
 				bool isClicked = ImGui::ImageButtonEx(asset->UID,
-				m_Icon, ImVec2(ASSET_SIZE, ASSET_SIZE), ImVec2(0, 1),
-				ImVec2(1, 0), ImVec4(0, 0, 0, 1), ImVec4(1, 1, 1, 1));
+                m_Icon, ImVec2(ASSET_SIZE, ASSET_SIZE), ImVec2(0, 1),
+                ImVec2(1, 0), ImVec4(0, 0, 0, 1), ImVec4(1, 1, 1, 1));
+                if (isClicked) {
+                    m_Selected = asset->UID;
+                }
+                if (m_Selected == asset->UID) {
+                    ImGui::SameLine();
+                    ImGui::BeginGroup();
+                    ImGui::Text("Name: %s", asset->Name.c_str());
+                    ImGui::Text("Source: %s", asset->Source.c_str());
+                    ImGui::EndGroup();
+                }
 			});
         }
         ImGui::End();
@@ -33,5 +43,5 @@ struct ResourceWindow : IWidget {
     private:
         texture2D m_IconImage;
         ImTextureID m_Icon;
-        AssetID m_Selected;
+        AssetID m_Selected = EMPTY_ASSET;
 };

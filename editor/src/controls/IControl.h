@@ -5,7 +5,9 @@
 
 template <typename Component>
 struct IControl : public IWidget {
-    FLOW_INLINE IControl(GuiContext* context) : IWidget(context) {}
+    FLOW_INLINE IControl(GuiContext* context) : IWidget(context) {
+        m_Title = "IControl";
+    }
     FLOW_INLINE virtual ~IControl() = default;
 
     FLOW_INLINE void onSelect(Entity entity) override {

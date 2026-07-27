@@ -23,7 +23,7 @@ namespace flow {
         AssetID UID = EMPTY_ASSET;
         std::string Source;
         std::string Name;
-        AssetType Type;
+        AssetType Type = AssetType::UNKNOWN;
     };
 
     struct MaterialAsset : Asset {
@@ -105,6 +105,16 @@ namespace flow {
 
         FLOW_INLINE void Clear() {
             m_Registry.clear();
+        }
+
+        FLOW_INLINE void Reset() {
+            m_Registry.clear();
+            AddEmpty<MaterialAsset>();
+            AddEmpty<TextureAsset>();
+            AddEmpty<SkyboxAsset>();
+            AddEmpty<ScriptAsset>();
+            AddEmpty<ModelAsset>();
+            AddEmpty<SceneAsset>();
         }
 
         FLOW_INLINE auto AddSkybox(AssetID uid, const std::string& src, int32_t size,

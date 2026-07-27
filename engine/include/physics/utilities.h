@@ -32,6 +32,6 @@ namespace flow {
 
         PxConvexMeshGeometry Mesh;
         PxShape* Shape = nullptr;
-        ColliderType Type;
+        ColliderType Type = BOX;
     };
 }

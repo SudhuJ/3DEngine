@@ -54,6 +54,10 @@ namespace flow {
 
                 attachCallback<windowResizeEvent>([this] (auto e) {
                     m_Context->Renderer->Resize(e.width, e.height);
+                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                    glViewport(0, 0, e.width, e.height);
+                    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                    glClear(GL_COLOR_BUFFER_BIT);
                     enttView<Entity, scriptComponent>([e] (auto entity, auto& script) {
                         if (script.Instance) {
                             script.Instance->onResize(e.width, e.height);
@@ -215,11 +219,7 @@ namespace flow {
                 m_Context->Renderer->endFrame();
             }
 
-            FLOW_INLINE void StartScene() {
-                // serializer
-                m_Context->Serializer->Deserialize(*m_Context->Assets, "resources/projects/assets.yaml");
-                m_Context->Serializer->Deserialize(m_Context->Scene, "resources/projects/scene.yaml");
-
+            FLOW_INLINE void InitSceneRuntime () {
                 enttView<Entity, skyboxComponent>([this] (auto entity, auto& comp) {
                     auto& skybox = m_Context->Assets->Get<SkyboxAsset>(comp.Sky);
                     auto skyTex = std::make_shared<texture2D>(skybox.EnvMap);
@@ -235,6 +235,13 @@ namespace flow {
                 enttView<Entity, rigidBodyComponent>([this] (auto entity, auto& comp) {
                     m_Context->Physics->AddRigidBody(entity);
                 });
+            }
+
+            FLOW_INLINE void StartScene() {
+                // serializer
+                m_Context->Serializer->Deserialize(*m_Context->Assets, "resources/projects/assets.yaml");
+                m_Context->Serializer->Deserialize(m_Context->Scene, "resources/projects/scene.yaml");
+                InitSceneRuntime();
             }
 
             FLOW_INLINE void UpdateScene() {

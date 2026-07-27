@@ -3,6 +3,8 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
+// #include "application/interface.h"
+
 #include "graphics/shaders/PBR.h"
 #include "graphics/shaders/skymap.h"
 #include "graphics/shaders/skybox.h"
@@ -103,6 +105,7 @@ namespace flow {
         FLOW_INLINE void Resize(int32_t width, int32_t height) {
             m_Frame->Resize(width, height);
             m_Bloom->Resize(width, height);
+            m_Final->Resize(width, height);
         }
 
         FLOW_INLINE void setJoints(std::vector<glm::mat4>& transforms) {
@@ -130,6 +133,7 @@ namespace flow {
 
         FLOW_INLINE void showFrame(bool useFBO) {
             glDisable(GL_CULL_FACE);
+            // glfwGetFramebufferSize();
             glViewport(0, 0, m_Frame->getWidth(), m_Frame->getHeight());
             m_Final->Render(m_Frame->getTexture(), m_Bloom->getMap(), useFBO);
         }

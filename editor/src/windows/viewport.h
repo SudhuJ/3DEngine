@@ -14,29 +14,44 @@ FLOW_INLINE void onShow(GuiContext* context) override {
             m_Frame = (ImTextureID)context->GetSceneFrame();
             ImGui::Image(m_Frame, size, ImVec2(0, 1), ImVec2(1, 0));
 
-            if (m_Viewport.x != size.x || m_Viewport.y != size.y) {
-                int32_t width = (int32_t)size.x, height=(int32_t)size.y;
-                context->postEvent<windowResizeEvent>(width, height);
-                m_Viewport = size;
-            }
+            // int fw = 0, fh = 0;
+            // glfwGetFramebufferSize(context->GetWindowHandle(), &fw, &fh);
+
+            // if (m_Viewport.x != fw || m_Viewport.y != fh) {
+            //     context->postEvent<windowResizeEvent>(fw, fh);
+            //     m_Viewport = ImVec2((float)fw, (float)fh);
+            // }
 
             auto io = ImGui::GetIO();
 
-            if (ImGui::IsWindowHovered()) {
+            // && !context->getRuntime()
+            if (ImGui::IsWindowHovered() ) {
+                // keyboard fly (relative to view)
+                float speed = 20.0f;
+                float dt = io.DeltaTime;
                 float sensitivity = 50;
-                context->enttView<Entity, cameraComponent>([&] (auto entity, auto& comp) {
-                    auto& transform = entity.template Get<transformComponent>().Transform;
-                    transform.Translate.z -= (io.MouseWheel * io.DeltaTime * sensitivity);
-                });
-            }
+                float orbitSensitivity = 10;
 
-            if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-                float sensitivity = 10;
                 context->enttView<Entity, cameraComponent>([&] (auto entity, auto& comp) {
                     auto& transform = entity.template Get<transformComponent>().Transform;
-                    transform.Rotate.x += io.MouseDelta.y * io.DeltaTime * sensitivity;
-                    transform.Rotate.x = glm::clamp(transform.Rotate.x, -89.0f, 89.0f);
-                    transform.Rotate.y += io.MouseDelta.x * io.DeltaTime * sensitivity;
+                    glm::quat orientation = glm::quat(glm::radians(transform.Rotate));
+                    glm::vec3 forward = orientation * glm::vec3(0.0f, 0.0f, -1.0f);
+                    glm::vec3 right   = orientation * glm::vec3(1.0f, 0.0f,  0.0f);
+                    glm::vec3 move(0.0f);
+                    auto* win = context->GetWindowHandle();
+                    if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) move += forward;
+                    if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) move -= forward;
+                    if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) move += right;
+                    if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) move -= right;
+                    if (glfwGetKey(win, GLFW_KEY_E) == GLFW_PRESS) move += glm::vec3(0.0f, 1.0f, 0.0f);
+                    if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) move -= glm::vec3(0.0f, 1.0f, 0.0f);
+                    if (glm::length(move) > 0.0f)
+                        transform.Translate += glm::normalize(move) * speed * dt;
+                    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+                        transform.Rotate.x += io.MouseDelta.y * io.DeltaTime * orbitSensitivity;
+                        transform.Rotate.x = glm::clamp(transform.Rotate.x, -89.0f, 89.0f);
+                        transform.Rotate.y += io.MouseDelta.x * io.DeltaTime * orbitSensitivity;
+                    }
                 });
             }
         }

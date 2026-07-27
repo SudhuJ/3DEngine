@@ -18,7 +18,7 @@ struct GuiContext : appInterface {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
-
+        io.IniFilename = nullptr;
         io.ConfigWindowsMoveFromTitleBarOnly = true;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
@@ -63,19 +63,19 @@ struct GuiContext : appInterface {
     }
 
     FLOW_INLINE void onUpdate() override final {
-        glBindProgramPipeline(0);
-        glUseProgram(0);
-        glBindVertexArray(0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-        glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_SCISSOR_TEST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // glBindProgramPipeline(0);
+        // glUseProgram(0);
+        // glBindVertexArray(0);
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, 0);
+        // glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        // glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        // glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+        // glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+        // glDisable(GL_DEPTH_TEST);
+        // glDisable(GL_CULL_FACE);
+        // glDisable(GL_SCISSOR_TEST);
+        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -103,6 +103,30 @@ struct GuiContext : appInterface {
         {
             ImGui::DockSpace(ImGui::GetID("MainDockspace"), ImVec2(0, 0),
             ImGuiDockNodeFlags_PassthruCentralNode);
+
+            static bool s_dockLayoutInit = false;
+            if (!s_dockLayoutInit) {
+                ImGuiID dockMain = ImGui::GetID("MainDockspace");
+                ImGui::DockBuilderRemoveNode(dockMain);
+                ImGui::DockBuilderAddNode(dockMain, ImGuiDockNodeFlags_DockSpace);
+                ImGui::DockBuilderSetNodeSize(dockMain, viewport->Size);
+
+                ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Left, 0.20f, nullptr, &dockMain);
+
+                ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Right, 0.25f, nullptr, &dockMain);
+
+                ImGuiID dockBottom = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Down, 0.25f, nullptr, &dockMain);
+
+                ImGuiID dockCenter = dockMain;
+                ImGui::DockBuilderDockWindow(ICON_FA_IMAGE "\tViewport", dockCenter);
+                ImGui::DockBuilderDockWindow(ICON_FA_CUBES "\tHierarchy", dockLeft);
+                ImGui::DockBuilderDockWindow(ICON_FA_CIRCLE_INFO "\tInspector", dockRight);
+                ImGui::DockBuilderDockWindow(ICON_FA_FOLDER_OPEN "\tResources", dockBottom);
+
+                ImGui::DockBuilderFinish(dockMain);
+                s_dockLayoutInit = true;
+            }
+
             ImGui::PopStyleColor();
             ImGui::PopStyleVar(3);
 
@@ -116,6 +140,10 @@ struct GuiContext : appInterface {
         ImGui::End();
 
         ImGui::Render();
+        // Clear default framebuffer to prevent trailing artifacts
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // Force-upload the font atlas every frame. The 1.92 dynamic backend may
         // have handed us a black atlas texture; re-upload valid pixels ourselves.
@@ -158,29 +186,6 @@ struct GuiContext : appInterface {
         }
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // --- diagnostic (safe to remove later) ---
-        ImDrawData* dd = ImGui::GetDrawData();
-        int lists = dd->CmdLists.Size, cmds = 0, vtx = 0;
-        for (int i = 0; i < lists; i++) {
-            cmds += dd->CmdLists[i]->CmdBuffer.Size;
-            vtx  += dd->CmdLists[i]->VtxBuffer.Size;
-        }
-        FLOW_WARN("DrawData lists={} cmds={} vtx={}", lists, cmds, vtx);
-
-        auto& plat = ImGui::GetPlatformIO();
-        if (plat.Textures.Size > 0) {
-            ImTextureData* atlas = plat.Textures[0];
-            FLOW_WARN("atlas {}x{} Status={} TexID={}", atlas->Width, atlas->Height, (int)atlas->Status, (uint64_t)atlas->TexID);
-            if (atlas->Width > 0 && atlas->Height > 0) {
-                std::vector<unsigned char> buf((size_t)atlas->Width * atlas->Height * 4);
-                glBindTexture(GL_TEXTURE_2D, (GLuint)(uint64_t)atlas->TexID);
-                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf.data());
-                int nonblack = 0;
-                for (size_t i = 0; i < buf.size(); i++) if (buf[i] != 0) nonblack++;
-                FLOW_WARN("atlas nonblack pixels={}/{}", nonblack, (int)buf.size());
-            }
-        }
     }
 
     template<typename T, typename... Args>

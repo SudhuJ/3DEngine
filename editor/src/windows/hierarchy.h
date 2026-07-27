@@ -8,7 +8,7 @@ struct HierarchyWindow : IWidget {
   }
 
 FLOW_INLINE void onShow(GuiContext* context) override {
-    if (ImGui::Begin(ICON_FA_CUBES "\tHeirarchy")) {
+    if (ImGui::Begin(ICON_FA_CUBES "\tHierarchy")) {
         context->enttView<Entity, infoComponent>([&] (auto entity, auto& info) {
             bool isSelected = (m_Selected.ID() == entity.ID());
             ImGui::PushID((int32_t)entity.ID());

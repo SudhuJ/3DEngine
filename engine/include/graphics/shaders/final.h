@@ -19,8 +19,9 @@ namespace flow {
 
         FLOW_INLINE void Render(uint32_t map, uint32_t bloom, bool useFBO) {
             glBindFramebuffer(GL_FRAMEBUFFER, useFBO ? 0 : m_FBO);
-            glClear(GL_COLOR_BUFFER_BIT);
             glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT);
+
 
             Bind();
             glBindTextureUnit(0, map);

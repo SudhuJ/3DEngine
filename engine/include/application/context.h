@@ -44,7 +44,7 @@ namespace flow {
         std::unique_ptr<AssetRegistry> Assets;
         std::unique_ptr<DataSerializer> Serializer;
         entityRegistry Scene;
-        double deltaTime;
+        double deltaTime = 0.0;
 
     };
 }

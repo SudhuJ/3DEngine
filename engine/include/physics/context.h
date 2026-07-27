@@ -85,10 +85,11 @@ namespace flow {
                     PxSphereGeometry sphere(transform.Scale.x/2.0f);
                     collider.Shape = m_Physics->createShape(sphere, *collider.Material);
                 }
-                // else if (collider.Type == Collider3D::BOX) {
-                //     PxBoxGeometry box(Vec3ToPx(transform.Scale/2.0f));
-                //     collider.Shape = m_Physics->createShape(box, *collider.Material);
+                // else if (collider.Type == MESH) {
+                //     PxConvexMeshGeometry mesh(Vec3ToPx(transform.Scale/2.0f));
+                //     collider.Shape = m_Physics->createShape(mesh, *collider.Material);
                 // }
+
                 else {
                     FLOW_ERROR("Error creating collider: unknown type.");
                     return;
