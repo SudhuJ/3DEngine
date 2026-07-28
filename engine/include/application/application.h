@@ -154,6 +154,8 @@ namespace flow {
             }
 
             FLOW_INLINE void RenderScene() {
+                m_Context->Renderer->setAmbient(glm::vec3(0.0f));
+
                 // shadow map
                 enttView<Entity, directLightComponent>([this] (auto light, auto&) {
                    auto& lightDir = light.template Get<transformComponent>().Transform.Rotate;

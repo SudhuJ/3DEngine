@@ -9,7 +9,7 @@ const float INV_PI = 0.3183098861837907;
 
 // Equirectangular Projection
 vec2 getSphericalUVs(vec3 v) {
-    vec2 uv = vec2(atan(v.z, v.x), asin(clamp(v.y, -0.999, 0.999)));
+    vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
     uv *= vec2(INV_2PI, INV_PI);
     uv += 0.5;
     return uv;

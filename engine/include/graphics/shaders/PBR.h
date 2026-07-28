@@ -24,6 +24,8 @@ namespace flow {
             u_DepthMap = glGetUniformLocation(m_FragmentProgID, "u_DepthMap");
             u_LightSpace = glGetUniformLocation(m_FragmentProgID, "u_LightSpace");
 
+            u_ambient = glGetUniformLocation(m_FragmentProgID, "u_ambient");
+
             u_npointLights = glGetUniformLocation(m_FragmentProgID, "u_npointLights");
             u_ndirectLights = glGetUniformLocation(m_FragmentProgID, "u_ndirectLights");
             u_nspotLights = glGetUniformLocation(m_FragmentProgID, "u_nspotLights");
@@ -189,6 +191,11 @@ namespace flow {
             glProgramUniformMatrix4fv(m_FragmentProgID, u_LightSpace, 1, GL_FALSE, glm::value_ptr(lightSpace));
         }
 
+        FLOW_INLINE void setAmbient(const glm::vec3& ambient) {
+            glProgramUniform3fv(m_FragmentProgID, u_ambient, 1, glm::value_ptr(ambient));
+        }
+
+
         private:
         static constexpr int32_t kMaxLights = 10;
 
@@ -223,6 +230,8 @@ namespace flow {
         int32_t u_PrefilteredMap = 0;
         int32_t u_LightSpace = 0;
         int32_t u_DepthMap = 0;
+
+        int32_t u_ambient = 0;
 
         int32_t u_npointLights = 0;
         int32_t u_ndirectLights = 0;

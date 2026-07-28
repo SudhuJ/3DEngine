@@ -57,8 +57,8 @@ namespace flow {
 
         FLOW_INLINE void InitSkybox(Skybox& sky, Texture& texture, int32_t size) {
             sky.m_CubeMap = m_SkyMap->Generate(texture, m_SkyboxMesh, size);
-            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 128);
-            sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, 128);
+            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 512);
+            sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, 512);
             sky.BRDFMap = m_BRDF->Generate(128);
         }
 
@@ -164,6 +164,10 @@ namespace flow {
 
         FLOW_INLINE void setSpotLightCount(int32_t count) {
             m_PBR->setSpotLightCount(count);
+        }
+
+        FLOW_INLINE void setAmbient(const glm::vec3& ambient) {
+            m_PBR->setAmbient(ambient);
         }
 
         private:

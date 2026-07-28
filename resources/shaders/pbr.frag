@@ -62,6 +62,7 @@ struct spotLight {
 
 uniform Material u_material;
 uniform vec3 u_viewPos;
+uniform vec3 u_ambient;
 uniform pointLight u_pointLights[MAX_LIGHTS];
 uniform directLight u_directLights[MAX_LIGHTS];
 uniform spotLight u_spotLights[MAX_LIGHTS];
@@ -85,7 +86,7 @@ vec3 computeAmbientLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, 
     vec2 brdf = texture(u_BRDFMap, vec2(cosTheta, roughness)).rg;
     vec3 specularIBL = (F0 * brdf.x + brdf.y) * Ks;
 
-    return diffuseIBL + specularIBL;
+    return diffuseIBL + specularIBL + u_ambient;
 }
 
 float geometrySchlickGGX(float NdotV, float roughness) {
@@ -116,7 +117,7 @@ vec3 computePointLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, fl
         vec3 L = normalize(u_pointLights[i].Position - v_Position);
         vec3 H = normalize(L + V);
 
-        float NdotL = max(dot(N, L), 0.0);
+        float NdotL = dot(N, L) * 0.5 + 0.5;
 
         // Cook-Torrance BRDF
         float NDF = distributionGGX(N, H, roughness);
@@ -142,7 +143,7 @@ vec3 computeDirectLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, f
         vec3 L = -normalize(u_directLights[i].Direction);
         vec3 H = normalize(V + L);
 
-        float NdotL = max(dot(N, L), 0.0);
+        float NdotL = dot(N, L) * 0.5 + 0.5;
 
         // Cook-Torrance BRDF
         float NDF = distributionGGX(N, H, roughness);
@@ -166,7 +167,7 @@ vec3 computeSpotLight(vec3 N, vec3 V, vec3 F0, vec3 albedo, float roughness, flo
         vec3 L = normalize(u_spotLights[i].Position - v_Position);
         vec3 H = normalize(V + L);
 
-        float NdotL = max(dot(N, L), 0.0);
+        float NdotL = dot(N, L) * 0.5 + 0.5;
 
         // Cook-Torrance BRDF
         float NDF = distributionGGX(N, H, roughness);
