@@ -38,6 +38,18 @@ function Initializer()
         return {}
     end
 
+    function ScriptKlass:GetController()
+        return APIGetController(self.Entity)
+    end
+
+    function ScriptKlass:GetMousePos()
+        return APIGetMousePos()
+    end
+
+    function ScriptKlass:SetMove(x, z)
+        APISetControllerMove(self.Entity, x, z)
+    end
+
     return ScriptKlass
 end
 

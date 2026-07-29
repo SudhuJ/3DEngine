@@ -111,6 +111,10 @@ namespace flow {
             return m_Context->Renderer->getFrame();
         }
 
+        FLOW_INLINE appContext* getAppContext() {
+            return m_Context;
+        }
+
         protected:
             FLOW_INLINE virtual void onUpdate() {}
             FLOW_INLINE virtual void onStart() {}

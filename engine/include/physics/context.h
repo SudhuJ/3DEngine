@@ -40,9 +40,23 @@ namespace flow {
                 m_Foundation->release();
                 return;
             }
+
+            m_ControllerManager = PxCreateControllerManager(*m_Scene);
+            if (!m_ControllerManager) {
+                FLOW_ERROR("Error initializing PhysX controller manager");
+                m_Physics->release();
+                m_Foundation->release();
+                m_Scene->release();
+                return;
+            }
         }
 
         FLOW_INLINE ~physicsContext() {
+            if (m_ControllerManager) {
+                m_ControllerManager->release();
+                m_ControllerManager = nullptr;
+            }
+
             if (m_Scene) {
                 PxU32 nbActors = m_Scene->getNbActors(
                     PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC);
@@ -117,8 +131,41 @@ namespace flow {
                 else if (!body.Dynamic) {
                     body.actor = m_Physics->createRigidStatic(pose);
                 }
+                if (!body.actor) {
+                    FLOW_ERROR("Error creating actor");
+                    return;
+                }
             }
-        };
+        }
+
+        FLOW_INLINE void AddCharacterController(Entity& entity) {
+            auto& transform = entity.template Get<transformComponent>().Transform;
+            auto& Control = entity.template Get<charControllerComponent>();
+            if (!Control.Material) {
+                Control.Material = m_Physics->createMaterial(0.5f, 0.5f, 0.1f);
+            }
+
+            PxCapsuleControllerDesc desc;
+            desc.position = PxExtendedVec3(transform.Translate.x,
+                transform.Translate.y, transform.Translate.z);
+            desc.radius = Control.Radius;
+            desc.height = Control.Height;
+            desc.stepOffset = Control.StepOffset;
+            desc.material = Control.Material;
+            desc.upDirection = PxVec3(0.0f, 1.0f, 0.0f);
+            desc.userData = new entityID(entity.ID());
+
+            if (!desc.isValid()) {
+                FLOW_ERROR("Invalid Capsule Controller Descriptor");
+                return;
+            }
+
+            Control.Controller = m_ControllerManager->createController(desc);
+        }
+
+        // FLOW_INLINE bool moveController(entityID entity, const glm::vec3& disp, float dt) {
+        //     auto it = m_ControllerManager;
+        // }
 
         FLOW_INLINE void setEventCallback(PxCallbackFunction&& callback) {
             m_EventCallback.m_Callback = callback;
@@ -158,6 +205,10 @@ namespace flow {
             }
         }
 
+        FLOW_INLINE void RemoveActor(PxActor* actor) {
+            m_Scene->removeActor(*actor);
+        }
+
         private:
             static PxFilterFlags CustomFilterShader(
                 PxFilterObjectAttributes attributes0, PxFilterData filterData0,
@@ -175,5 +226,6 @@ namespace flow {
             PxFoundation* m_Foundation;
             PxPhysics* m_Physics;
             PxScene* m_Scene;
+            PxControllerManager* m_ControllerManager;
     };
 }

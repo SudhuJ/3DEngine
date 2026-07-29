@@ -7,7 +7,9 @@
 namespace flow {
     struct DataSerializer {
 
-        FLOW_INLINE void Serialize(entityRegistry& scene, const std::string& path) {
+        // ── String serialize (for runtime snapshot) ──
+
+        FLOW_INLINE std::string Serialize(entityRegistry& scene) {
             YAML::Emitter emitter;
 
             emitter << YAML::BeginMap;
@@ -72,6 +74,19 @@ namespace flow {
                                     emitter << YAML::Key << "StaticFriction"  << YAML::Value << collider.StaticFriction;
                                     emitter << YAML::Key << "Restitution"     << YAML::Value << collider.Restitution;
                                     emitter << YAML::Key << "Type"            << YAML::Value << type;
+                                }
+                                emitter << YAML::EndMap;
+                            }
+
+                            if (entity.template Has<charControllerComponent>()) {
+                                auto& control = entity.template Get<charControllerComponent>();
+                                emitter << YAML::Key << "CharControllerComponent" << YAML::BeginMap;
+                                {
+                                    emitter << YAML::Key << "Radius"     << YAML::Value << control.Radius;
+                                    emitter << YAML::Key << "Height"     << YAML::Value << control.Height;
+                                    emitter << YAML::Key << "StepOffset" << YAML::Value << control.StepOffset;
+                                    emitter << YAML::Key << "MoveSpeed"  << YAML::Value << control.MoveSpeed;
+                                    emitter << YAML::Key << "EyeOffset"  << YAML::Value << control.EyeOffset;
                                 }
                                 emitter << YAML::EndMap;
                             }
@@ -143,11 +158,132 @@ namespace flow {
             }
             emitter << YAML::EndMap;
 
+            return emitter.c_str();
+        }
+
+        // ── File serialize (delegates to string version) ──
+
+        FLOW_INLINE void Serialize(entityRegistry& scene, const std::string& path) {
             std::ofstream filepath(path);
             if (filepath.is_open()) {
-                filepath << emitter.c_str();
+                filepath << Serialize(scene);
             }
         }
+
+        // ── String deserialize (for runtime restore) ──
+
+        FLOW_INLINE void DeserializeFromString(entityRegistry& scene, const std::string& data) {
+            scene.clear();
+            try {
+                const auto root = YAML::Load(data);
+                const auto nodes = root["ENTITIES"];
+
+                for (const auto& node : nodes) {
+                    entityID entity = scene.create();
+
+                    if (auto d = node["InfoComponent"]) {
+                        auto& info = scene.emplace<infoComponent>(entity);
+                        info.Parent = d["Parent"].as<AssetID>();
+                        info.Name   = d["Name"].as<std::string>();
+                        info.UID    = d["UID"].as<AssetID>();
+                    }
+
+                    if (auto d = node["CameraComponent"]) {
+                        auto& camera = scene.emplace<cameraComponent>(entity).Camera;
+                        camera.nearPlane = d["NearPlane"].as<float>();
+                        camera.farPlane  = d["FarPlane"].as<float>();
+                        camera.FOV       = d["FOV"].as<float>();
+                    }
+
+                    if (auto d = node["TransformComponent"]) {
+                        auto& transform = scene.emplace<transformComponent>(entity).Transform;
+                        transform.Translate = d["Translate"].as<glm::vec3>();
+                        transform.Rotate    = d["Rotation"].as<glm::vec3>();
+                        transform.Scale     = d["Scale"].as<glm::vec3>();
+                    }
+
+                    if (auto d = node["RigidBodyComponent"]) {
+                        auto& body = scene.emplace<rigidBodyComponent>(entity).RigidBody;
+                        body.Density = d["Density"].as<float>();
+                        body.Dynamic = d["Dynamic"].as<bool>();
+                    }
+
+                    if (auto d = node["ColliderComponent"]) {
+                        auto& collider = scene.emplace<colliderComponent>(entity).Collider;
+                        collider.DynamicFriction = d["DynamicFriction"].as<float>();
+                        collider.StaticFriction  = d["StaticFriction"].as<float>();
+                        collider.Restitution     = d["Restitution"].as<float>();
+                        const auto name = d["Type"].as<std::string>();
+                        auto opt = magic_enum::enum_cast<ColliderType>(name);
+                        if (opt.has_value()) { collider.Type = opt.value(); }
+                    }
+
+                    if (auto d = node["CharControllerComponent"]) {
+                        auto& control = scene.emplace<charControllerComponent>(entity);
+                        control.Radius     = d["Radius"].as<float>();
+                        control.Height     = d["Height"].as<float>();
+                        control.StepOffset = d["StepOffset"].as<float>();
+                        control.MoveSpeed  = d["MoveSpeed"].as<float>();
+                        control.EyeOffset  = d["EyeOffset"].as<float>();
+                    }
+
+                    if (auto d = node["ModelComponent"]) {
+                        auto& comp = scene.emplace<modelComponent>(entity);
+                        comp.Material = d["Material"].as<AssetID>();
+                        comp.Model    = d["Model"].as<AssetID>();
+                    }
+
+                    if (auto d = node["ScriptComponent"]) {
+                        auto& comp = scene.emplace<scriptComponent>(entity);
+                        comp.Script = d["Script"].as<AssetID>();
+                    }
+
+                    if (auto d = node["SkyboxComponent"]) {
+                        auto& comp = scene.emplace<skyboxComponent>(entity);
+                        comp.Sky = d["Skybox"].as<AssetID>();
+                    }
+
+                    if (auto d = node["DirectLightComponent"]) {
+                        auto& light = scene.emplace<directLightComponent>(entity).Light;
+                        light.Radiance  = d["Radiance"].as<glm::vec3>();
+                        light.Intensity = d["Intensity"].as<float>();
+                    }
+
+                    if (auto d = node["PointLightComponent"]) {
+                        auto& light = scene.emplace<pointLightComponent>(entity).Light;
+                        light.Radiance  = d["Radiance"].as<glm::vec3>();
+                        light.Intensity = d["Intensity"].as<float>();
+                    }
+
+                    if (auto d = node["SpotLightComponent"]) {
+                        auto& light = scene.emplace<spotLightComponent>(entity).Light;
+                        light.Radiance  = d["Radiance"].as<glm::vec3>();
+                        light.Intensity = d["Intensity"].as<float>();
+                        light.Falloff   = d["FallOff"].as<float>();
+                        light.Cutoff    = d["CutOff"].as<float>();
+                    }
+                }
+            }
+            catch (YAML::Exception&) {
+                FLOW_ERROR("Failed to Deserialize Scene snapshot.");
+            }
+        }
+
+        // ── File deserialize (reads file, delegates to string version) ──
+
+        FLOW_INLINE void Deserialize(entityRegistry& scene, const std::string& path) {
+            try {
+                std::ifstream t(path);
+                std::stringstream buffer;
+                buffer << t.rdbuf();
+                DeserializeFromString(scene, buffer.str());
+            }
+            catch (...) {
+                FLOW_ERROR("Failed to Deserialize Scene from file: {}", path);
+            }
+        }
+
+        // ── Asset serialize ──
 
         FLOW_INLINE void Serialize(AssetRegistry& registry, const std::string& path) {
             YAML::Emitter emitter;
@@ -226,93 +362,7 @@ namespace flow {
             }
         }
 
-        FLOW_INLINE void Deserialize(entityRegistry& scene, const std::string& path) {
-            try {
-                const auto root = YAML::LoadFile(path);
-                const auto nodes = root["ENTITIES"];
-                scene.clear();
-
-                for (const auto& node : nodes) {
-                    entityID entity = scene.create();
-
-                    if (auto data = node["InfoComponent"]) {
-                        auto& info = scene.emplace<infoComponent>(entity);
-                        info.Parent = data["Parent"].as<AssetID>();
-                        info.Name   = data["Name"].as<std::string>();
-                        info.UID    = data["UID"].as<AssetID>();
-                    }
-
-                    if (auto data = node["CameraComponent"]) {
-                        auto& camera = scene.emplace<cameraComponent>(entity).Camera;
-                        camera.nearPlane = data["NearPlane"].as<float>();
-                        camera.farPlane  = data["FarPlane"].as<float>();
-                        camera.FOV       = data["FOV"].as<float>();
-                    }
-
-                    if (auto data = node["TransformComponent"]) {
-                        auto& transform = scene.emplace<transformComponent>(entity).Transform;
-                        transform.Translate = data["Translate"].as<glm::vec3>();
-                        transform.Rotate    = data["Rotation"].as<glm::vec3>();
-                        transform.Scale     = data["Scale"].as<glm::vec3>();
-                    }
-
-                    if (auto data = node["RigidBodyComponent"]) {
-                        auto& body = scene.emplace<rigidBodyComponent>(entity).RigidBody;
-                        body.Density = data["Density"].as<float>();
-                        body.Dynamic = data["Dynamic"].as<bool>();
-                    }
-
-                    if (auto data = node["ColliderComponent"]) {
-                        auto& collider = scene.emplace<colliderComponent>(entity).Collider;
-                        collider.DynamicFriction = data["DynamicFriction"].as<float>();
-                        collider.StaticFriction  = data["StaticFriction"].as<float>();
-                        collider.Restitution     = data["Restitution"].as<float>();
-                        const auto name = data["Type"].as<std::string>();
-                        auto opt = magic_enum::enum_cast<ColliderType>(name);
-                        if (opt.has_value()) { collider.Type = opt.value(); }
-                    }
-
-                    if (auto data = node["ModelComponent"]) {
-                        auto& comp = scene.emplace<modelComponent>(entity);
-                        comp.Material = data["Material"].as<AssetID>();
-                        comp.Model    = data["Model"].as<AssetID>();
-                    }
-
-                    if (auto data = node["ScriptComponent"]) {
-                        auto& comp = scene.emplace<scriptComponent>(entity);
-                        comp.Script = data["Script"].as<AssetID>();
-                    }
-
-                    if (auto data = node["SkyboxComponent"]) {
-                        auto& comp = scene.emplace<skyboxComponent>(entity);
-                        comp.Sky = data["Skybox"].as<AssetID>();
-                    }
-
-                    if (auto data = node["DirectLightComponent"]) {
-                        auto& light = scene.emplace<directLightComponent>(entity).Light;
-                        light.Radiance  = data["Radiance"].as<glm::vec3>();
-                        light.Intensity = data["Intensity"].as<float>();
-                    }
-
-                    if (auto data = node["PointLightComponent"]) {
-                        auto& light = scene.emplace<pointLightComponent>(entity).Light;
-                        light.Radiance  = data["Radiance"].as<glm::vec3>();
-                        light.Intensity = data["Intensity"].as<float>();
-                    }
-
-                    if (auto data = node["SpotLightComponent"]) {
-                        auto& light = scene.emplace<spotLightComponent>(entity).Light;
-                        light.Radiance  = data["Radiance"].as<glm::vec3>();
-                        light.Intensity = data["Intensity"].as<float>();
-                        light.Falloff   = data["FallOff"].as<float>();
-                        light.Cutoff    = data["CutOff"].as<float>();
-                    }
-                }
-            }
-            catch (YAML::ParserException& e) {
-                FLOW_ERROR("Failed to Deserialize Scene.");
-            }
-        }
+        // ── Asset deserialize ──
 
         FLOW_INLINE void Deserialize(AssetRegistry& registry, const std::string& path) {
             try {

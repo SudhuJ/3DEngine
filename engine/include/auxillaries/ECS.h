@@ -154,4 +154,20 @@ namespace flow {
         std::string Name = "Entity";
         AssetID UID = RandomU64();
     };
+
+    struct charControllerComponent {
+        FLOW_INLINE charControllerComponent(const charControllerComponent&) = default;
+        FLOW_INLINE charControllerComponent() = default;
+        PxController* Controller = nullptr;
+        PxMaterial* Material = nullptr;
+        float Radius = 0.5f;
+        float Height = 1.0f;
+        float StepOffset = 0.25f;
+        float MoveSpeed = 10.0f;
+        float EyeOffset = 1.7f;
+        float Pitch = 0.00f;
+        float Yaw = 0.00f;
+        float VerticalVelocity = 0.0f;
+        glm::vec3 MoveIntent = {0.0f, 0.0f, 0.0f};
+    };
 }

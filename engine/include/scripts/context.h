@@ -2,13 +2,13 @@
 
 #include "auxillaries/ECS.h"
 #include "window/window.h"
-
+#include "physics/context.h"
 namespace flow {
     struct ScriptContext{
         FLOW_INLINE ScriptContext(entityRegistry* scene, appWindow* window) {
-            m_Lua.open_libraries(sol::lib::base);
+            m_Lua.open_libraries(sol::lib::base, sol::lib::math);
 
-            m_Lua.require_file("inputs", "resources/scripts/engine/input.lua");
+            m_Lua["inputs"] = m_Lua.require_file("inputs", "resources/scripts/engine/input.lua");
             m_Lua.require_file("core", "resources/scripts/engine/core.lua");
 
             m_Lua["TRANSFORM"] = TypeID<transformComponent>();
@@ -20,6 +20,19 @@ namespace flow {
             m_Lua.new_usertype<glm::vec3>("Vec3",
                 sol::constructors<glm::vec3(), glm::vec3(float, float, float)>(),
                 "x", &glm::vec3::x, "y", &glm::vec3::y, "z", &glm::vec3::z);
+
+            m_Lua["CONTROLLER"] = TypeID<charControllerComponent>();
+            m_Lua.new_usertype<charControllerComponent>("CharController",
+                "Yaw", &charControllerComponent::Yaw,
+                "Pitch", &charControllerComponent::Pitch,
+                "MoveSpeed", &charControllerComponent::MoveSpeed,
+                "EyeOffset", &charControllerComponent::EyeOffset,
+                "VerticalVelocity", &charControllerComponent::VerticalVelocity
+            );
+
+            m_Lua.new_usertype<glm::vec2>("Vec2",
+                sol::constructors<glm::vec2(), glm::vec2(float, float)>(),
+                "x", &glm::vec2::x, "y", &glm::vec2::y);
 
             setAPIFunctions(scene, window);
         }
@@ -110,6 +123,38 @@ namespace flow {
                         scene->get<scriptComponent>(entity).Instance->onDestroy();
                     }
                     scene->destroy(entity);
+                });
+
+                // m_Lua.set_function("APISetControllerMove", [this, scene] (entityID entity,
+                //     float x, float z) {
+                //     if (scene->all_of<charControllerComponent>(entity)) {
+                //         auto& comp = scene->get<charControllerComponent>(entity);
+                //         comp.MoveIntent = glm::vec3(x, 0.0f, z);
+                //     }
+                //     return true;
+                // });
+
+                m_Lua.set_function("APISetControllerMove", [this, scene] (entityID entity,
+                    float x, float z) {
+                    if (scene->all_of<charControllerComponent>(entity)) {
+                        auto& comp = scene->get<charControllerComponent>(entity);
+                        comp.MoveIntent = glm::vec3(x, 0.0f, z);
+                        FLOW_INFO("APISetControllerMove: set MoveIntent({},0,{}) on entity {}", x, z, (int)entity);
+                    }
+                    else {
+                        FLOW_INFO("APISetControllerMove: entity {} has NO charControllerComponent!", (int)entity);
+                    }
+                    return true;
+                });
+
+                m_Lua.set_function("APIGetController", [this, scene] (entityID entity) {
+                    return std::ref(scene->get<charControllerComponent>(entity));
+                });
+
+                m_Lua.set_function("APIGetMousePos", [window] () -> glm::vec2 {
+                    double x, y;
+                    glfwGetCursorPos(window->getHandle(), &x, &y);
+                    return glm::vec2(static_cast<float>(x), static_cast<float>(y));
                 });
             }
 

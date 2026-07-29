@@ -4,7 +4,6 @@
 
 struct ViewportWindow : IWidget {
   FLOW_INLINE ViewportWindow(GuiContext* context) : IWidget(context) {
-      // m_Frame = (ImTextureID)context->GetSceneFrame();
   }
 
 FLOW_INLINE void onShow(GuiContext* context) override {
@@ -14,22 +13,10 @@ FLOW_INLINE void onShow(GuiContext* context) override {
             m_Frame = (ImTextureID)context->GetSceneFrame();
             ImGui::Image(m_Frame, size, ImVec2(0, 1), ImVec2(1, 0));
 
-            // int fw = 0, fh = 0;
-            // glfwGetFramebufferSize(context->GetWindowHandle(), &fw, &fh);
-
-            // if (m_Viewport.x != fw || m_Viewport.y != fh) {
-            //     context->postEvent<windowResizeEvent>(fw, fh);
-            //     m_Viewport = ImVec2((float)fw, (float)fh);
-            // }
-
-            auto io = ImGui::GetIO();
-
-            // && !context->getRuntime()
-            if (ImGui::IsWindowHovered() ) {
-                // keyboard fly (relative to view)
+            if (ImGui::IsWindowHovered() && context->getAppContext()->Mode != engineMode::PLAY_IN_EDITOR) {
+                auto io = ImGui::GetIO();
                 float speed = 20.0f;
                 float dt = io.DeltaTime;
-                float sensitivity = 50;
                 float orbitSensitivity = 10;
 
                 context->enttView<Entity, cameraComponent>([&] (auto entity, auto& comp) {
@@ -61,7 +48,6 @@ FLOW_INLINE void onShow(GuiContext* context) override {
 }
 
 FLOW_INLINE void onSelect(Entity entity) override {
-
 }
 
   private:

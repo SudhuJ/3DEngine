@@ -29,6 +29,18 @@ namespace flow {
             }
         }
 
+        FLOW_INLINE void onMouseMove(int32_t dx, int32_t dy) {
+            if (m_Handle.valid()) {
+                m_Handle["onMouseMove"](m_Handle, dx, dy);
+            }
+        }
+
+        FLOW_INLINE void onMouseDrag(int32_t dx, int32_t dy) {
+            if (m_Handle.valid()) {
+                m_Handle["onMouseDrag"](m_Handle, dx, dy);
+            }
+        }
+
         FLOW_INLINE void onCollision(entityID other) {
             if (m_Handle.valid()) {
                 m_Handle["onCollision"](m_Handle, other);

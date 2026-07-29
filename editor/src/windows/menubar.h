@@ -12,15 +12,21 @@ struct MenuBarWindow : IWidget {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6,6));
         if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem(ICON_FA_FILE " New Project")) {
-
+                if (ImGui::MenuItem(ICON_FA_STORE "Save")) {
+                    context->getAppContext()->Serializer->Serialize(
+                    context->getAppContext()->Scene, "resources/projects/scene.yaml");
+                    context->getAppContext()->Serializer->Serialize(
+                    *context->getAppContext()->Assets, "resources/projects/assets.yaml");
                 }
-                if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Open/Import", "Ctrl+O")) {
-
+                if (ImGui::MenuItem(ICON_FA_UPLOAD "Load")) {
+                    context->getAppContext()->Scene.clear();
+                    context->getAppContext()->Serializer->Deserialize(
+                    context->getAppContext()->Scene, "resources/projects/scene.yaml");
                 }
-                if (ImGui::MenuItem(ICON_FA_STORE " Save Project", "Ctrl+S")) {
+                if (ImGui::MenuItem(ICON_FA_PARACHUTE_BOX "Export")) {
+                    // Serialize + copy game binary + resources to output dir
                 }
-                if (ImGui::MenuItem(ICON_FA_DOOR_CLOSED " Exit", "Alt+F4")) {
+                if (ImGui::MenuItem(ICON_FA_DOOR_CLOSED " Exit")) {
                     glfwSetWindowShouldClose(context->GetWindowHandle(), true);
                 }
                 ImGui::EndMenu();
@@ -33,12 +39,12 @@ struct MenuBarWindow : IWidget {
                     entity.template Attach<infoComponent>().Name  = "New Entity";
                 }
 
-                if (ImGui::MenuItem(ICON_FA_BACKWARD " Undo", "Ctrl+Z")) {
+                // if (ImGui::MenuItem(ICON_FA_BACKWARD " Undo", "Ctrl+Z")) {
 
-                }
-                if (ImGui::MenuItem(ICON_FA_BACKWARD " Redo", "Ctrl+Y")) {
+                // }
+                // if (ImGui::MenuItem(ICON_FA_BACKWARD " Redo", "Ctrl+Y")) {
 
-                }
+                // }
 
                 ImGui::Separator();
                 if (ImGui::MenuItem(ICON_FA_SCISSORS " Cut", "Ctrl+X")) {}
@@ -85,17 +91,23 @@ struct MenuBarWindow : IWidget {
                 if (ImGui::Button("Close", ImVec2(100, 0))) { showAbout = false; ImGui::CloseCurrentPopup(); }
                 ImGui::EndPopup();
             }
-            // if (ImGui::BeginMenu("Test Game")) {
-            //     if (context->isPlaying()) {
-            //         if (ImGui::MenuItem(ICON_FA_PAUSE "Pause")) context->pause();
-            //     }
-            //     else {
-            //         if (ImGui::MenuItem(ICON_FA_PLAY "Play"))  context->play();
-            //     }
-            //     if (ImGui::MenuItem(ICON_FA_STOP  "Stop"))  context->stop();
-            //     ImGui::EndMenu();
-            // }
-
+            if (ImGui::BeginMenu("Play")) {
+                auto& ctx = *context->getAppContext();
+                if (ctx.Mode == engineMode::EDITOR) {
+                    if (ImGui::MenuItem(ICON_FA_PLAY " Play")) {
+                        context->getAppContext()->sceneSnapshot = context->getAppContext()->Serializer->Serialize(context->getAppContext()->Scene);
+                        context->getAppContext()->StartRuntime();
+                        ctx.Mode = engineMode::PLAY_IN_EDITOR;
+                        glfwSetInputMode(context->GetWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                    }
+                }
+                else {
+                    if (ImGui::MenuItem(ICON_FA_STOP " Stop")) {
+                        context->getAppContext()->StopRuntime();
+                    }
+                }
+                ImGui::EndMenu();
+            }
             ImGui::EndMenuBar();
         }
         ImGui::PopStyleVar();
