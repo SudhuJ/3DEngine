@@ -129,10 +129,6 @@ namespace flow {
                 player.Attach<charControllerComponent>();
                 player.Attach<scriptComponent>().Script = scriptAsset->UID;
 
-                auto& playerSpawnPos = player.Attach<transformComponent>().Transform;
-                playerSpawnPos.Translate = glm::vec3(0.0f, 0.0f, 10.0f);
-
-
                 auto skybox = createEntt<Entity>();
                 skybox.Attach<infoComponent>();
                 skybox.Attach<skyboxComponent>().Sky = skyboxAsset->UID;
@@ -189,22 +185,29 @@ namespace flow {
 
                 // shadow map
                 enttView<Entity, directLightComponent>([this] (auto light, auto&) {
-                   auto& lightDir = light.template Get<transformComponent>().Transform.Rotate;
-                   m_Context->Renderer->beginShadowPass(lightDir);
-
-                   enttView<Entity, modelComponent>([this, &lightDir] (auto entity, auto& comp) {
-                       auto& transform = entity.template Get<transformComponent>().Transform;
-                       auto& model = m_Context->Assets->Get<ModelAsset>(comp.Model);
-                       m_Context->Renderer->drawDepth(model.Data, transform);
-                   });
-                   m_Context->Renderer->endShadowPass();
+                    auto& transform = light.template Get<transformComponent>().Transform;
+                    glm::quat rotation = glm::quat(glm::radians(transform.Rotate));
+                    glm::vec3 forward = rotation * glm::vec3(0.0f, 0.0f, -1.0f);
+                    m_Context->Renderer->beginShadowPass(forward);
                 });
+
+                enttView<Entity, modelComponent>([this] (auto entity, auto& comp) {
+                    auto& transform = entity.template Get<transformComponent>().Transform;
+                    auto& model = m_Context->Assets->Get<ModelAsset>(comp.Model);
+                    m_Context->Renderer->drawDepth(model.Data, transform);
+                });
+                m_Context->Renderer->endShadowPass();
+
 
                 // FBO Render
                 m_Context->Renderer->newFrame();
                 enttView<Entity, cameraComponent>([this] (auto entity, auto& comp) {
                     auto& transform = entity.template Get<transformComponent>().Transform;
                     m_Context->Renderer->setCamera(comp.Camera, transform);
+                });
+                enttView<Entity, skyboxComponent>([this] (auto entity, auto& comp) {
+                    auto& skybox = m_Context->Assets->Get<SkyboxAsset>(comp.Sky);
+                    m_Context->Renderer->setIBL(skybox.Data);
                 });
 
                 int32_t lightCounter = 0u;
@@ -283,10 +286,12 @@ namespace flow {
 
             FLOW_INLINE void StartScene() {
                 if (m_Context->Mode == engineMode::STANDALONE_GAME) {
-                    CreateEntities();
+                    m_Context->Serializer->Deserialize(*m_Context->Assets, "resources/projects/assets.yaml");
+                    m_Context->Serializer->Deserialize(m_Context->Scene, "resources/projects/scene.yaml");
                     InitSceneRuntime();
                     glfwSetInputMode(GetWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                } else {
+                }
+                else {
                     m_Context->Serializer->Deserialize(*m_Context->Assets, "resources/projects/assets.yaml");
                     m_Context->Serializer->Deserialize(m_Context->Scene, "resources/projects/scene.yaml");
                     InitSkybox();
@@ -306,14 +311,14 @@ namespace flow {
                         auto* win = GetWindowHandle();
 
                         // --- Read movement intent from script, oriented by yaw ---
-                        glm::vec3 move = comp.MoveIntent;
-                        comp.MoveIntent = {0.0f, 0.0f, 0.0f};
+                        glm::vec3 move = comp.Controller.MoveIntent;
+                        comp.Controller.MoveIntent = {0.0f, 0.0f, 0.0f};
 
                         if (glm::length(move) > 0.0f) {
-                            glm::vec3 forwardDir(-glm::sin(comp.Yaw), 0.0f, -glm::cos(comp.Yaw));
-                            glm::vec3 rightDir(glm::cos(comp.Yaw), 0.0f, -glm::sin(comp.Yaw));
+                            glm::vec3 forwardDir(-glm::sin(comp.Controller.Yaw), 0.0f, -glm::cos(comp.Controller.Yaw));
+                            glm::vec3 rightDir(glm::cos(comp.Controller.Yaw), 0.0f, -glm::sin(comp.Controller.Yaw));
                             move = (forwardDir * move.z + rightDir * move.x)
-                                 * comp.MoveSpeed * static_cast<float>(m_Context->deltaTime);
+                                 * comp.Controller.MoveSpeed * static_cast<float>(m_Context->deltaTime);
                         }
                         else {
                             move = glm::vec3(0.0f);
@@ -321,19 +326,19 @@ namespace flow {
 
                         // --- Apply gravity to vertical velocity ---
                         float dt = static_cast<float>(m_Context->deltaTime);
-                        comp.VerticalVelocity += -9.81f * dt;
-                        move.y += comp.VerticalVelocity * dt;
+                        comp.Controller.VerticalVelocity += -9.81f * dt;
+                        move.y += comp.Controller.VerticalVelocity * dt;
 
                         // --- Move the controller ---
-                        if (comp.Controller) {
+                        if (comp.ControllerPtr) {
                             PxControllerFilters filters;
-                            PxU32 collisionFlags = comp.Controller->move(Vec3ToPx(move), 0.001f, dt, filters);
+                            PxU32 collisionFlags = comp.ControllerPtr->move(Vec3ToPx(move), 0.001f, dt, filters);
 
                             if (collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN) {
-                                comp.VerticalVelocity = 0.0f;
+                                comp.Controller.VerticalVelocity = 0.0f;
                             }
 
-                            PxExtendedVec3 footPos = comp.Controller->getPosition();
+                            PxExtendedVec3 footPos = comp.ControllerPtr->getPosition();
                             transform.Translate = glm::vec3(
                                 static_cast<float>(footPos.x),
                                 static_cast<float>(footPos.y),
@@ -342,13 +347,12 @@ namespace flow {
                         }
 
                         // --- Apply eye offset + pitch + yaw for the camera ---
-                        transform.Translate.y += comp.EyeOffset;
-                        transform.Rotate.x = glm::degrees(comp.Pitch);
-                        transform.Rotate.y = glm::degrees(comp.Yaw);
+                        transform.Translate.y += comp.Controller.EyeOffset;
+                        transform.Rotate.x = glm::degrees(comp.Controller.Pitch);
+                        transform.Rotate.y = glm::degrees(comp.Controller.Yaw);
                         transform.Rotate.z = 0.0f;
                     });
                 }
-
 
                 m_Context->Physics->Simulate(1, m_Context->deltaTime);
 

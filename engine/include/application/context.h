@@ -53,6 +53,10 @@ namespace flow {
             });
             Scene.view<charControllerComponent>().each([this](auto id, auto& comp) {
                 Entity ent(&Scene, id);
+                auto& transform = ent.Get<transformComponent>().Transform;
+                transform.Translate = comp.Controller.SpawnPosition;
+                comp.Controller.Yaw = comp.Controller.SpawnYaw;
+                comp.Controller.Pitch = 0.0f;
                 Physics->AddCharacterController(ent);
             });
             Scene.view<scriptComponent>().each([this](auto id, auto& comp) {
@@ -66,12 +70,12 @@ namespace flow {
         FLOW_INLINE void StopRuntime() {
             if (sceneSnapshot.empty()) return;
             Scene.view<charControllerComponent>().each([this](auto entity, auto& comp) {
-                if (comp.Controller) {
-                    comp.Controller->release();
+                if (comp.ControllerPtr) {
+                    comp.ControllerPtr->release();
                 }
                 if (comp.Material) {
                     comp.Material->release();
-                    comp.Material   = nullptr;
+                    comp.Material = nullptr;
                 }
             });
             Scene.view<rigidBodyComponent>().each([this](auto entity, auto& comp) {

@@ -21,7 +21,6 @@ function testScript.onUpdate(self, dt)
     ctrl.Yaw = ctrl.Yaw - dx * 0.002
     ctrl.Pitch = ctrl.Pitch - dy * 0.002
     ctrl.Pitch = math.max(-1.5, math.min(1.5, ctrl.Pitch))
-    print("AFTER_MOUSE_LOOK")
 
     -- Movement
     local mx, mz = 0, 0

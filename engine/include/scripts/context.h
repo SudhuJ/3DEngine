@@ -23,11 +23,21 @@ namespace flow {
 
             m_Lua["CONTROLLER"] = TypeID<charControllerComponent>();
             m_Lua.new_usertype<charControllerComponent>("CharController",
-                "Yaw", &charControllerComponent::Yaw,
-                "Pitch", &charControllerComponent::Pitch,
-                "MoveSpeed", &charControllerComponent::MoveSpeed,
-                "EyeOffset", &charControllerComponent::EyeOffset,
-                "VerticalVelocity", &charControllerComponent::VerticalVelocity
+                "Yaw", sol::property(
+                    [](charControllerComponent& c) { return c.Controller.Yaw; },
+                    [](charControllerComponent& c, float v) { c.Controller.Yaw = v; }),
+                "Pitch", sol::property(
+                    [](charControllerComponent& c) { return c.Controller.Pitch; },
+                    [](charControllerComponent& c, float v) { c.Controller.Pitch = v; }),
+                "MoveSpeed", sol::property(
+                    [](charControllerComponent& c) { return c.Controller.MoveSpeed; },
+                    [](charControllerComponent& c, float v) { c.Controller.MoveSpeed = v; }),
+                "EyeOffset", sol::property(
+                    [](charControllerComponent& c) { return c.Controller.EyeOffset; },
+                    [](charControllerComponent& c, float v) { c.Controller.EyeOffset = v; }),
+                "VerticalVelocity", sol::property(
+                    [](charControllerComponent& c) { return c.Controller.VerticalVelocity; },
+                    [](charControllerComponent& c, float v) { c.Controller.VerticalVelocity = v; })
             );
 
             m_Lua.new_usertype<glm::vec2>("Vec2",
@@ -138,11 +148,10 @@ namespace flow {
                     float x, float z) {
                     if (scene->all_of<charControllerComponent>(entity)) {
                         auto& comp = scene->get<charControllerComponent>(entity);
-                        comp.MoveIntent = glm::vec3(x, 0.0f, z);
-                        FLOW_INFO("APISetControllerMove: set MoveIntent({},0,{}) on entity {}", x, z, (int)entity);
+                        comp.Controller.MoveIntent = glm::vec3(x, 0.0f, z);
                     }
                     else {
-                        FLOW_INFO("APISetControllerMove: entity {} has NO charControllerComponent!", (int)entity);
+                        FLOW_ERROR("APISetControllerMove: entity {} has NO charControllerComponent!", (int)entity);
                     }
                     return true;
                 });

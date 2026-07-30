@@ -27,6 +27,6 @@ void main() {
         }
     }
 
-    irradiance = irradiance * sampleDelta * sampleDelta;
+    irradiance = irradiance * sampleDelta * sampleDelta / PI;
     out_fragment = vec4(irradiance, 1.0);
 }

@@ -82,11 +82,13 @@ namespace flow {
                                 auto& control = entity.template Get<charControllerComponent>();
                                 emitter << YAML::Key << "CharControllerComponent" << YAML::BeginMap;
                                 {
-                                    emitter << YAML::Key << "Radius"     << YAML::Value << control.Radius;
-                                    emitter << YAML::Key << "Height"     << YAML::Value << control.Height;
-                                    emitter << YAML::Key << "StepOffset" << YAML::Value << control.StepOffset;
-                                    emitter << YAML::Key << "MoveSpeed"  << YAML::Value << control.MoveSpeed;
-                                    emitter << YAML::Key << "EyeOffset"  << YAML::Value << control.EyeOffset;
+                                    emitter << YAML::Key << "Radius"     << YAML::Value << control.Controller.Radius;
+                                    emitter << YAML::Key << "Height"     << YAML::Value << control.Controller.Height;
+                                    emitter << YAML::Key << "StepOffset" << YAML::Value << control.Controller.StepOffset;
+                                    emitter << YAML::Key << "MoveSpeed"  << YAML::Value << control.Controller.MoveSpeed;
+                                    emitter << YAML::Key << "EyeOffset"  << YAML::Value << control.Controller.EyeOffset;
+                                    emitter << YAML::Key << "SpawnPosition" << YAML::Value << control.Controller.SpawnPosition;
+                                    emitter << YAML::Key << "SpawnYaw" << YAML::Value << control.Controller.SpawnYaw;
                                 }
                                 emitter << YAML::EndMap;
                             }
@@ -220,11 +222,13 @@ namespace flow {
 
                     if (auto d = node["CharControllerComponent"]) {
                         auto& control = scene.emplace<charControllerComponent>(entity);
-                        control.Radius     = d["Radius"].as<float>();
-                        control.Height     = d["Height"].as<float>();
-                        control.StepOffset = d["StepOffset"].as<float>();
-                        control.MoveSpeed  = d["MoveSpeed"].as<float>();
-                        control.EyeOffset  = d["EyeOffset"].as<float>();
+                        control.Controller.Radius     = d["Radius"].as<float>();
+                        control.Controller.Height     = d["Height"].as<float>();
+                        control.Controller.StepOffset = d["StepOffset"].as<float>();
+                        control.Controller.MoveSpeed  = d["MoveSpeed"].as<float>();
+                        control.Controller.EyeOffset  = d["EyeOffset"].as<float>();
+                        control.Controller.SpawnPosition = d["SpawnPosition"].as<glm::vec3>(glm::vec3(0.0f, 0.0f, 10.0f));
+                        control.Controller.SpawnYaw      = d["SpawnYaw"].as<float>(0.0f);
                     }
 
                     if (auto d = node["ModelComponent"]) {

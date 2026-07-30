@@ -4,6 +4,7 @@
 #include "controls/enttinfo.h"
 #include "controls/transform.h"
 #include "controls/directlight.h"
+#include "controls/spawn.h"
 
 #include "context/context.h"
 #include "context/widget.h"
@@ -14,6 +15,7 @@ struct InspectorWindow : IWidget {
         m_Widgets.push_back(context->CreateWidget<TransformControl>());
         m_Widgets.push_back(context->CreateWidget<CameraControl>());
         m_Widgets.push_back(context->CreateWidget<DirectLightControl>());
+        m_Widgets.push_back(context->CreateWidget<SpawnControl>());
     }
 
     FLOW_INLINE void onShow(GuiContext* context) override {

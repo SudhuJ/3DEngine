@@ -37,6 +37,20 @@ namespace flow {
         float FOV = glm::radians(45.0f);
     };
 
+    struct charController3D {
+        float Radius = 0.5f;
+        float Height = 1.0f;
+        float StepOffset = 0.25f;
+        float MoveSpeed = 10.0f;
+        float EyeOffset = 1.7f;
+        float Pitch = 0.00f;
+        float Yaw = 0.00f;
+        float VerticalVelocity = 0.0f;
+        glm::vec3 MoveIntent = {0.0f, 0.0f, 0.0f};
+        glm::vec3 SpawnPosition = {0.0f, 0.0f, 10.0f};
+        float SpawnYaw = 0.0f;
+    };
+
     struct Material{
         FLOW_INLINE Material() = default;
         FLOW_INLINE Material(const Material&) = default;

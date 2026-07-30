@@ -1,6 +1,6 @@
 #pragma once
 
-#include  "IControl.h"
+#include "IControl.h"
 
 struct DirectLightControl : IControl<directLightComponent> {
     FLOW_INLINE DirectLightControl(GuiContext* context) : IControl(context) {

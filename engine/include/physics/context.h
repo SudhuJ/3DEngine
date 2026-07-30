@@ -148,9 +148,9 @@ namespace flow {
             PxCapsuleControllerDesc desc;
             desc.position = PxExtendedVec3(transform.Translate.x,
                 transform.Translate.y, transform.Translate.z);
-            desc.radius = Control.Radius;
-            desc.height = Control.Height;
-            desc.stepOffset = Control.StepOffset;
+            desc.radius = Control.Controller.Radius;
+            desc.height = Control.Controller.Height;
+            desc.stepOffset = Control.Controller.StepOffset;
             desc.material = Control.Material;
             desc.upDirection = PxVec3(0.0f, 1.0f, 0.0f);
             desc.userData = new entityID(entity.ID());
@@ -160,7 +160,7 @@ namespace flow {
                 return;
             }
 
-            Control.Controller = m_ControllerManager->createController(desc);
+            Control.ControllerPtr = m_ControllerManager->createController(desc);
         }
 
         // FLOW_INLINE bool moveController(entityID entity, const glm::vec3& disp, float dt) {

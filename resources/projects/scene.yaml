@@ -225,7 +225,7 @@ ENTITIES:
       Parent: 0
     TransformComponent:
       Translate: [0, 0, 0]
-      Rotation: [0, 1, -1]
+      Rotation: [-45, 0, 0]
       Scale: [1, 1, 1]
     DirectLightComponent:
       Intensity: 1
