@@ -2,6 +2,8 @@
 
 #include "widget.h"
 #include "../../engine/include/application/interface.h"
+#include <portable-file-dialogs.h>
+#include "style.h"
 
 struct GuiContext : appInterface {
     FLOW_INLINE virtual ~GuiContext() {
@@ -52,7 +54,7 @@ struct GuiContext : appInterface {
             io.Fonts->AddFontDefault();
         }
 
-        ImGui::StyleColorsDark();
+        ApplyDarkTheme();
 
         attachCallback<SelectEvent>([this] (auto e) {
             for (auto& window : m_Windows) {
@@ -79,6 +81,14 @@ struct GuiContext : appInterface {
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+
+        if (getAppContext()->Mode == engineMode::PLAY_IN_EDITOR) {
+            ImGuiIO& io = ImGui::GetIO();
+            io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+            io.MouseDown[0] = io.MouseDown[1] = io.MouseDown[2] = false;
+        }
+
+
         ImGui::NewFrame();
 
         static auto viewport = ImGui::GetMainViewport();
@@ -95,7 +105,7 @@ struct GuiContext : appInterface {
 
         // Set window style
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 
@@ -113,7 +123,7 @@ struct GuiContext : appInterface {
 
                 ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Left, 0.20f, nullptr, &dockMain);
 
-                ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Right, 0.25f, nullptr, &dockMain);
+                ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Right, 0.35f, nullptr, &dockMain);
 
                 ImGuiID dockBottom = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Down, 0.25f, nullptr, &dockMain);
 
