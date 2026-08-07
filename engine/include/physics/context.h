@@ -99,11 +99,30 @@ namespace flow {
                     PxSphereGeometry sphere(transform.Scale.x/2.0f);
                     collider.Shape = m_Physics->createShape(sphere, *collider.Material);
                 }
-                // else if (collider.Type == MESH) {
-                //     PxConvexMeshGeometry mesh(Vec3ToPx(transform.Scale/2.0f));
-                //     collider.Shape = m_Physics->createShape(mesh, *collider.Material);
-                // }
+                else if (collider.Type == MESH) {
+                    FLOW_INFO("MESH collider: triangleMesh={} convexMesh={}",
+                        (uintptr_t)collider.TriangleMesh.triangleMesh,
+                        (uintptr_t)collider.Mesh.convexMesh);
 
+                    if (collider.TriangleMesh.triangleMesh) {
+                        if (body.Dynamic) {
+                            FLOW_ERROR("MESH collider requires static rigid body.");
+                            return;
+                        }
+                        PxTriangleMeshGeometry geom(collider.TriangleMesh.triangleMesh,
+                            PxMeshScale(Vec3ToPx(transform.Scale)));
+                        collider.Shape = m_Physics->createShape(geom, *collider.Material);
+                    }
+                    else if (collider.Mesh.convexMesh) {
+                        PxConvexMeshGeometry geom(collider.Mesh.convexMesh,
+                            PxMeshScale(Vec3ToPx(transform.Scale)));
+                        collider.Shape = m_Physics->createShape(geom, *collider.Material);
+                    }
+                    else {
+                        FLOW_ERROR("MESH collider requires cooked triangle or convex mesh");
+                        return;
+                    }
+                }
                 else {
                     FLOW_ERROR("Error creating collider: unknown type.");
                     return;
@@ -123,6 +142,11 @@ namespace flow {
                 }
                 body.actor->userData = new entityID(entity.ID());
                 m_Scene->addActor(*body.actor);
+
+                // debug info
+                FLOW_INFO("RigidBody actor added: actor={} shape={} pose=({}, {}, {}) dynamic={}",
+                    (uintptr_t)body.actor, (uintptr_t)collider.Shape,
+                    pose.p.x, pose.p.y, pose.p.z, body.Dynamic);
             }
             else {
                 if (body.Dynamic) {
@@ -161,6 +185,12 @@ namespace flow {
             }
 
             Control.ControllerPtr = m_ControllerManager->createController(desc);
+
+            // debug info
+            FLOW_INFO("Controller: ptr={} pos=({}, {}, {}) radius={} height={}",
+                            (uintptr_t)Control.ControllerPtr,
+                            (float)desc.position.x, (float)desc.position.y, (float)desc.position.z,
+                            desc.radius, desc.height);
         }
 
         // FLOW_INLINE bool moveController(entityID entity, const glm::vec3& disp, float dt) {
@@ -196,6 +226,61 @@ namespace flow {
 
             cooking->release();
             return convexMeshGeometry;
+        }
+
+        FLOW_INLINE PxTriangleMeshGeometry CookTriangleMesh(const meshData<shadedVertex>& data) {
+            std::vector<PxVec3> vertices;
+            vertices.reserve(data.vertices.size());
+            for (const auto& vertex : data.vertices) {
+                vertices.push_back(Vec3ToPx(vertex.Position));
+            }
+
+            PxTriangleMeshDesc meshDesc;
+            meshDesc.points.count = vertices.size();
+            meshDesc.points.stride = sizeof(PxVec3);
+            meshDesc.points.data = vertices.data();
+
+            meshDesc.triangles.count = data.indices.size() / 3;
+            meshDesc.triangles.stride = 3 * sizeof(uint32_t);
+            meshDesc.triangles.data = data.indices.data();
+
+            PxCookingParams cookingParams = PxCookingParams(PxTolerancesScale());
+            cookingParams.meshWeldTolerance = 0.001f;
+            cookingParams.meshPreprocessParams =
+                PxMeshPreprocessingFlags(PxMeshPreprocessingFlag::eWELD_VERTICES);
+            PxCooking* cooking = PxCreateCooking(PX_PHYSICS_VERSION, *m_Foundation, cookingParams);
+
+            PxTriangleMeshCookingResult::Enum result;
+            PxTriangleMesh* triangleMesh = cooking->createTriangleMesh(meshDesc,
+                m_Physics->getPhysicsInsertionCallback(), &result);
+            cooking->release();
+
+            if (triangleMesh) {
+                FLOW_INFO("CookTriangleMesh OK: result={} verts={} tris={}",
+                    (int)result, (int)data.vertices.size(), (int)(data.indices.size() / 3));
+                    if (!data.vertices.empty()) {
+                        glm::vec3 mn = data.vertices.front().Position;
+                        glm::vec3 mx = mn;
+                        for (const auto& v : data.vertices) {
+                            mn = glm::min(mn, v.Position);
+                            mx = glm::max(mx, v.Position);
+                        }
+                        FLOW_INFO("Cooked mesh AABB: min=({}, {}, {}) max=({}, {}, {})",
+                            mn.x, mn.y, mn.z, mx.x, mx.y, mx.z);
+                    }
+            }
+            else {
+                FLOW_ERROR("CookTriangleMesh returned NULL, result={}", (int)result);
+            }
+
+            if (!triangleMesh || result == PxTriangleMeshCookingResult::eFAILURE) {
+                FLOW_ERROR("Failed to cook triangle mesh");
+                return PxTriangleMeshGeometry();
+            }
+            if (result == PxTriangleMeshCookingResult::eLARGE_TRIANGLE) {
+                FLOW_WARN("Triangle mesh cooked with large triangles (reduced stability)");
+            }
+            return PxTriangleMeshGeometry(triangleMesh);
         }
 
         FLOW_INLINE void Simulate(uint32_t step, float dt) {

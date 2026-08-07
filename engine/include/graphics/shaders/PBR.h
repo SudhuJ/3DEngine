@@ -89,53 +89,17 @@ namespace flow {
         FLOW_INLINE void Draw(model3D& model, Material& material, transform3D& transform){
             glProgramUniformMatrix4fv(m_VertexProgID, u_Model, 1, GL_FALSE, glm::value_ptr(transform.Matrix()));
             glProgramUniform1i(m_VertexProgID, u_hasJoints, model->HasJoint());
-            glProgramUniform1f(m_FragmentProgID, u_Roughness, material.Roughness);
-            glProgramUniform1f(m_FragmentProgID, u_Metallic, material.Metallic);
-            glProgramUniform1f(m_FragmentProgID, u_Occlusion, material.Occlusion);
-
-            glProgramUniform3fv(m_FragmentProgID, u_Albedo, 1, glm::value_ptr(material.Albedo));
-            glProgramUniform3fv(m_FragmentProgID, u_Emissive, 1, glm::value_ptr(material.Emissive));
-
-            int32_t unit = 4;
-            bool useMap = false;
-
-            useMap = material.AlbedoMap != nullptr;
-            glProgramUniform1i(m_FragmentProgID, u_useAlbedoMap, useMap);
-            if(material.AlbedoMap) {
-                material.AlbedoMap->Use(m_FragmentProgID, u_AlbedoMap, unit++);
-            }
-
-            useMap = material.NormalMap != nullptr;
-            glProgramUniform1i(m_FragmentProgID, u_useNormalMap, useMap);
-            if(material.NormalMap) {
-                material.NormalMap->Use(m_FragmentProgID, u_NormalMap, unit++);
-            }
-
-            useMap = material.MetallicMap != nullptr;
-            glProgramUniform1i(m_FragmentProgID, u_useMetallicMap, useMap);
-            if(material.MetallicMap) {
-                material.MetallicMap->Use(m_FragmentProgID, u_MetallicMap, unit++);
-            }
-
-            useMap = material.EmissiveMap != nullptr;
-            glProgramUniform1i(m_FragmentProgID, u_useEmissiveMap, useMap);
-            if(material.EmissiveMap) {
-                material.EmissiveMap->Use(m_FragmentProgID, u_EmissiveMap, unit++);
-            }
-
-            useMap = material.OcclusionMap != nullptr;
-            glProgramUniform1i(m_FragmentProgID, u_useOcclusionMap, useMap);
-            if(material.OcclusionMap) {
-                material.OcclusionMap->Use(m_FragmentProgID, u_OcclusionMap, unit++);
-            }
-
-            useMap = material.RoughnessMap != nullptr;
-            glProgramUniform1i(m_FragmentProgID, u_useRoughnessMap, useMap);
-            if(material.RoughnessMap) {
-                material.RoughnessMap->Use(m_FragmentProgID, u_RoughnessMap, unit++);
-            }
-
+            setMaterial(material);
             model->Draw(GL_TRIANGLES);
+        }
+
+        FLOW_INLINE void Draw(staticModel& model, transform3D& transform){
+            glProgramUniformMatrix4fv(m_VertexProgID, u_Model, 1, GL_FALSE, glm::value_ptr(transform.Matrix()));
+            glProgramUniform1i(m_VertexProgID, u_hasJoints, 0);
+            for (auto& entry : model.GetMeshes()) {
+                setMaterial(entry.Mat);
+                entry.Mesh->Draw(GL_TRIANGLES);
+            }
         }
 
         FLOW_INLINE void setJoints(std::vector<glm::mat4>& transforms) {
@@ -201,6 +165,56 @@ namespace flow {
 
 
         private:
+            FLOW_INLINE void setMaterial(Material& material) {
+                glProgramUniform1f(m_FragmentProgID, u_Roughness, material.Roughness);
+                glProgramUniform1f(m_FragmentProgID, u_Metallic, material.Metallic);
+                glProgramUniform1f(m_FragmentProgID, u_Occlusion, material.Occlusion);
+
+                glProgramUniform3fv(m_FragmentProgID, u_Albedo, 1, glm::value_ptr(material.Albedo));
+                glProgramUniform3fv(m_FragmentProgID, u_Emissive, 1, glm::value_ptr(material.Emissive));
+
+                int32_t unit = 4;
+                bool useMap = false;
+
+                useMap = material.AlbedoMap != nullptr;
+                glProgramUniform1i(m_FragmentProgID, u_useAlbedoMap, useMap);
+                if (material.AlbedoMap) {
+                    material.AlbedoMap->Use(m_FragmentProgID, u_AlbedoMap, unit++);
+                }
+
+                useMap = material.NormalMap != nullptr;
+                glProgramUniform1i(m_FragmentProgID, u_useNormalMap, useMap);
+                if (material.NormalMap) {
+                    material.NormalMap->Use(m_FragmentProgID, u_NormalMap, unit++);
+                }
+
+                useMap = material.MetallicMap != nullptr;
+                glProgramUniform1i(m_FragmentProgID, u_useMetallicMap, useMap);
+                if (material.MetallicMap) {
+                    material.MetallicMap->Use(m_FragmentProgID, u_MetallicMap, unit++);
+                }
+
+                useMap = material.EmissiveMap != nullptr;
+                glProgramUniform1i(m_FragmentProgID, u_useEmissiveMap, useMap);
+                if (material.EmissiveMap) {
+                    material.EmissiveMap->Use(m_FragmentProgID, u_EmissiveMap, unit++);
+                }
+
+                useMap = material.OcclusionMap != nullptr;
+                glProgramUniform1i(m_FragmentProgID, u_useOcclusionMap, useMap);
+                if (material.OcclusionMap) {
+                    material.OcclusionMap->Use(m_FragmentProgID, u_OcclusionMap, unit++);
+                }
+
+                useMap = material.RoughnessMap != nullptr;
+                glProgramUniform1i(m_FragmentProgID, u_useRoughnessMap, useMap);
+                if (material.RoughnessMap) {
+                    material.RoughnessMap->Use(m_FragmentProgID, u_RoughnessMap, unit++);
+                }
+            }
+
+
+
         static constexpr int32_t kMaxLights = 10;
 
         int32_t u_Model = 0;

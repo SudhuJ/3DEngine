@@ -28,10 +28,7 @@ function testScript.onUpdate(self, dt)
     if inputs.isKey(inputs.KEY_S) then mz = mz - 1 end
     if inputs.isKey(inputs.KEY_D) then mx = mx + 1 end
     if inputs.isKey(inputs.KEY_A) then mx = mx - 1 end
-    -- self:SetMove(mx, mz)
-    print(type(APISetControllerMove))
-    print(type(self.SetMove))
-    print(type(self.Entity))
+
     APISetControllerMove(self.Entity, mx, mz)
 end
 

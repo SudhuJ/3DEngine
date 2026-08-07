@@ -51,10 +51,15 @@ struct Editor : GuiContext {
 int32_t main(int32_t argc, char* argv[]) {
     FLOW_INFO("Editor Started.");
 
-    auto app = new Application();
+    std::string projectPath;
+    for (int32_t i = 1; i < argc; ++i) {
+        std::string arg(argv[i]);
+        if (arg == "--project" && i + 1 < argc) projectPath = argv[++i];
+    }
+
+    auto app = new Application(engineMode::EDITOR, projectPath);
     app->attachLayer<Editor>();
     app->runContext(false);
-    // app->~Application();
     FLOW_DELETE(app);
     return 0;
 }

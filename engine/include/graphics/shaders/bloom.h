@@ -115,7 +115,7 @@ namespace flow {
 
             int32_t m_Height = 0;
             int32_t m_Width = 0;
-            int32_t m_Scale = 5;
+            int32_t m_Scale = 2;
 
             int32_t m_OrigWidth = 0;
             int32_t m_OrigHeight = 0;

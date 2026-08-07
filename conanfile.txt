@@ -13,6 +13,7 @@ lua/5.4.6
 yaml-cpp/0.9.0
 magic_enum/0.9.7
 imgui/1.92.8-docking
+portable-file-dialogs/0.1.0
 
 [options]
 glfw/*:shared=False
@@ -24,6 +25,7 @@ physx/*:shared=True
 yaml-cpp/*:shared=True
 imgui/*:with_glfw=True
 imgui/*:with_opengl3=True
+imgui/*:with_freetype=True
 
 [generators]
 CMakeDeps

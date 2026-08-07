@@ -40,7 +40,7 @@ namespace flow {
     struct TextureAsset : Asset {
         bool isHDR = false;
         bool flipV = true;
-        texture2D Data;
+        Texture Data;
     };
 
     struct SkyboxAsset : Asset {
@@ -132,7 +132,7 @@ namespace flow {
         FLOW_INLINE auto AddTexture(AssetID uid, const std::string& src,
                 bool isHDR = false, bool flipV = true) {
             auto asset = std::make_shared<TextureAsset>();
-            asset->Data.Load(src, isHDR, flipV);
+            asset->Data = std::make_shared<texture2D>(src, isHDR, flipV);
             asset->Type = AssetType::TEXTURE;
             asset->isHDR = isHDR;
             asset->flipV = flipV;
@@ -173,6 +173,25 @@ namespace flow {
             asset->Type = AssetType::SCENE;
             Add(uid, src, asset);
             return asset;
+        }
+
+        FLOW_INLINE void ResolveMaterialTextures() {
+            auto& texMap = m_Registry[TypeID<TextureAsset>()];
+            for (auto& [uid, asset] : m_Registry[TypeID<MaterialAsset>()]) {
+                if (uid == EMPTY_ASSET) continue;
+                    auto& mtl = static_cast<MaterialAsset&>(*asset);
+                    auto resolve = [&](AssetID id, Texture& dest) {
+                        if (id != EMPTY_ASSET && texMap.count(id)) {
+                            dest = static_cast<TextureAsset&>(*texMap[id]).Data;
+                        }
+                    };
+                resolve(mtl.AlbedoMap, mtl.Data.AlbedoMap);
+                resolve(mtl.NormalMap, mtl.Data.NormalMap);
+                resolve(mtl.MetallicMap, mtl.Data.MetallicMap);
+                resolve(mtl.EmissiveMap, mtl.Data.EmissiveMap);
+                resolve(mtl.OcclusionMap, mtl.Data.OcclusionMap);
+                resolve(mtl.RoughnessMap, mtl.Data.RoughnessMap);
+            }
         }
 
         private:

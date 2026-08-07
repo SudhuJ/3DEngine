@@ -11,4 +11,4 @@ cmake -S . -B $target -DCMAKE_BUILD_TYPE=$1 -DCMAKE_TOOLCHAIN_FILE="$target/cona
 # fix for clangd LSP not finding compile_commands.json
 ln -sf "$target/compile_commands.json" compile_commands.json
 
-cmake --build $target --config $1 -j2
+cmake --build $target --config $1 -j4

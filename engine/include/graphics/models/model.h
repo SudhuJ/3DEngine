@@ -7,10 +7,12 @@
 #include "animator.h"
 #include "../buffers/vertex.h"
 #include "graphics/utilities/data.h"
+#include "common/core.h"
 
 namespace flow {
     struct Model {
         FLOW_INLINE virtual JointMatrices* Animate(float) { return nullptr; }
+        FLOW_INLINE virtual Material* GetDefaultMaterial() { return nullptr; }
         FLOW_INLINE virtual bool HasJoint() { return false; }
         FLOW_INLINE virtual void Load(const std::string& path) {}
         FLOW_INLINE virtual void Draw(uint32_t mode) {}
@@ -33,37 +35,55 @@ namespace flow {
                 FLOW_ERROR("Failed to load model: {}", importer.GetErrorString());
                 return;
             }
-            parseNode(ai_Scene, ai_Scene->mRootNode);
+            m_ModelPath = path;
+            parseNode(ai_Scene, ai_Scene->mRootNode, glm::mat4(1.0f));
         }
 
         FLOW_INLINE void Draw(uint32_t mode) override final {
-            for (auto& mesh : m_Meshes) {
-                mesh->Draw(mode);
+            for (auto& entry : m_Meshes) {
+                entry.Mesh->Draw(mode);
             }
         }
 
+        FLOW_INLINE Material* GetDefaultMaterial() override final {
+            return m_Meshes.empty() ? nullptr : &m_Meshes[0].Mat;
+        }
+
+        struct MeshEntry {
+            mesh3D Mesh;
+            Material Mat;
+            meshData<shadedVertex> Data;
+        };
+
+        std::vector<MeshEntry>& GetMeshes() {
+            return m_Meshes;
+        }
+
         private:
-            FLOW_INLINE void parseNode(const aiScene* ai_Scene, aiNode* ai_Node) {
+            std::string m_ModelPath;
+            FLOW_INLINE void parseNode(const aiScene* ai_Scene, aiNode* ai_Node, const glm::mat4& acc) {
+                glm::mat4 world = acc * assimptoMat4(ai_Node->mTransformation);
                 for (uint32_t i = 0; i < ai_Node->mNumMeshes; i++) {
-                    parseMesh(ai_Scene->mMeshes[ai_Node->mMeshes[i]]);
+                    parseMesh(ai_Scene, ai_Scene->mMeshes[ai_Node->mMeshes[i]], world);
                 }
                 for (uint32_t i = 0; i < ai_Node->mNumChildren; i++) {
-                    parseNode(ai_Scene, ai_Node->mChildren[i]);
+                    parseNode(ai_Scene, ai_Node->mChildren[i], world);
                 }
             }
 
-            FLOW_INLINE void parseMesh(aiMesh* ai_Mesh) {
+            FLOW_INLINE void parseMesh(const aiScene* ai_Scene, aiMesh* ai_Mesh, const glm::mat4& world) {
+                const glm::mat3 normalMat = glm::mat3(glm::transpose(glm::inverse(world)));
                 meshData<shadedVertex> data;
                 for (uint32_t i = 0; i < ai_Mesh->mNumVertices; i++) {
                     shadedVertex vertex;
-                    vertex.Position = assimptoVec3(ai_Mesh->mVertices[i]);
-                    vertex.Normal = ai_Mesh->mNormals ? assimptoVec3(ai_Mesh->mNormals[i]) : glm::vec3(0.0f);
+                    vertex.Position = glm::vec3(world * glm::vec4(assimptoVec3(ai_Mesh->mVertices[i]), 1.0f));
+                    vertex.Normal = ai_Mesh->mNormals ? glm::normalize(normalMat * assimptoVec3(ai_Mesh->mNormals[i])) : glm::vec3(0.0f);
                     if (ai_Mesh->HasTextureCoords(0)) {
                         vertex.UVs.x = ai_Mesh->mTextureCoords[0][i].x;
                         vertex.UVs.y = ai_Mesh->mTextureCoords[0][i].y;
                     }
-                    vertex.Tangent = ai_Mesh->mTangents ? glm::normalize(assimptoVec3(ai_Mesh->mTangents[i])) : glm::vec3(0.0f);
-                    vertex.Bitangent = ai_Mesh->mBitangents ? glm::normalize(assimptoVec3(ai_Mesh->mBitangents[i])) : glm::vec3(0.0f);
+                    vertex.Tangent = ai_Mesh->mTangents ? glm::normalize(normalMat * assimptoVec3(ai_Mesh->mTangents[i])) : glm::vec3(0.0f);
+                    vertex.Bitangent = ai_Mesh->mBitangents ? glm::normalize(normalMat * assimptoVec3(ai_Mesh->mBitangents[i])) : glm::vec3(0.0f);
                     data.vertices.push_back(vertex);
                 }
 
@@ -72,11 +92,48 @@ namespace flow {
                         data.indices.push_back(ai_Mesh->mFaces[i].mIndices[j]);
                     }
                 }
+
+                Material mat;
+                if (ai_Scene->HasMaterials() && ai_Mesh->mMaterialIndex >= 0) {
+                    aiMaterial* ai_mat = ai_Scene->mMaterials[ai_Mesh->mMaterialIndex];
+                    aiColor4D color;
+                    if (ai_mat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS ||
+                        ai_mat->Get(AI_MATKEY_BASE_COLOR, color) == AI_SUCCESS) {
+                        mat.Albedo = glm::vec3(color.r, color.g, color.b);
+                    }
+                    float val = 0.0f;
+                    if (ai_mat->Get(AI_MATKEY_METALLIC_FACTOR, val) == AI_SUCCESS) {
+                        mat.Metallic = val;
+                    }
+                    if (ai_mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, val) == AI_SUCCESS) {
+                        mat.Roughness = val;
+                    }
+                    auto loadTex = [&](aiTextureType type, Texture& dest) {
+                        aiString path;
+                        if (ai_mat->GetTexture(type, 0, &path) == AI_SUCCESS) {
+                            std::filesystem::path modelDir = std::filesystem::path(m_ModelPath).parent_path();
+                            std::string fullPath = (modelDir / std::filesystem::path(path.C_Str())).string();
+                            if (type == aiTextureType_DIFFUSE) mat.AlbedoPath = fullPath;
+                            dest = std::make_shared<texture2D>(fullPath, false, true);
+                        }
+                    };
+                    loadTex(aiTextureType_DIFFUSE, mat.AlbedoMap);
+                    loadTex(aiTextureType_NORMALS, mat.NormalMap);
+                    loadTex(aiTextureType_METALNESS, mat.MetallicMap);
+                    loadTex(aiTextureType_DIFFUSE_ROUGHNESS, mat.RoughnessMap);
+                    loadTex(aiTextureType_AMBIENT_OCCLUSION, mat.OcclusionMap);
+                    loadTex(aiTextureType_EMISSIVE, mat.EmissiveMap);
+                }
+
                 auto mesh = std::make_shared<shadedMesh>(data);
-                m_Meshes.push_back(std::move(mesh));
+                MeshEntry entry;
+                entry.Mesh = std::move(mesh);
+                entry.Mat = mat;
+                entry.Data = std::move(data);
+                m_Meshes.push_back(std::move(entry));
             }
 
-            std::vector<mesh3D> m_Meshes;
+            std::vector<MeshEntry> m_Meshes;
     };
 
     struct skeletalModel : public Model {

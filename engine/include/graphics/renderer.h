@@ -57,7 +57,7 @@ namespace flow {
 
         FLOW_INLINE void InitSkybox(Skybox& sky, Texture& texture, int32_t size) {
             sky.m_CubeMap = m_SkyMap->Generate(texture, m_SkyboxMesh, size);
-            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 512);
+            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 256);
             sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, 256);
             sky.BRDFMap = m_BRDF->Generate(128);
         }
@@ -140,6 +140,10 @@ namespace flow {
 
         FLOW_INLINE void Draw(model3D& model, Material& material, transform3D& transform) {
             m_PBR->Draw(model, material, transform);
+        }
+
+        FLOW_INLINE void Draw(staticModel& model, transform3D& transform) {
+            m_PBR->Draw(model, transform);
         }
 
         FLOW_INLINE void setPointLight(pointLight& light, transform3D& transform, int32_t index) {

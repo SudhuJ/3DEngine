@@ -119,8 +119,8 @@ namespace flow {
                                 {
                                     emitter << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
                                     emitter << YAML::Key << "Radiance"  << YAML::Value << light.Radiance;
-                                    emitter << YAML::Key << "FallOff"   << YAML::Value << light.Falloff;
-                                    emitter << YAML::Key << "CutOff"    << YAML::Value << light.Cutoff;
+                                    emitter << YAML::Key << "Falloff"   << YAML::Value << light.Falloff;
+                                    emitter << YAML::Key << "Cutoff"    << YAML::Value << light.Cutoff;
                                 }
                                 emitter << YAML::EndMap;
                             }
@@ -186,8 +186,8 @@ namespace flow {
                     if (auto d = node["InfoComponent"]) {
                         auto& info = scene.emplace<infoComponent>(entity);
                         info.Parent = d["Parent"].as<AssetID>();
-                        info.Name   = d["Name"].as<std::string>();
-                        info.UID    = d["UID"].as<AssetID>();
+                        info.Name = d["Name"].as<std::string>();
+                        info.UID = d["UID"].as<AssetID>();
                     }
 
                     if (auto d = node["CameraComponent"]) {
@@ -263,8 +263,8 @@ namespace flow {
                         auto& light = scene.emplace<spotLightComponent>(entity).Light;
                         light.Radiance  = d["Radiance"].as<glm::vec3>();
                         light.Intensity = d["Intensity"].as<float>();
-                        light.Falloff   = d["FallOff"].as<float>();
-                        light.Cutoff    = d["CutOff"].as<float>();
+                        light.Falloff   = d["Falloff"].as<float>();
+                        light.Cutoff    = d["Cutoff"].as<float>();
                     }
                 }
             }
@@ -432,7 +432,7 @@ namespace flow {
                     asset->Name   = name;
                 }
             }
-            catch (YAML::ParserException& e) {
+            catch (YAML::Exception& e) {
                 FLOW_ERROR("Failed to Deserialize Assets.");
             }
         }

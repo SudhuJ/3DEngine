@@ -1,0 +1,63 @@
+ENTITIES:
+  - InfoComponent:
+      UID: 4873456053569544652
+      Name: Entity
+      Parent: 0
+    CameraComponent:
+      NearPlane: 0.3
+      FarPlane: 500
+      FOV: 0.7853982
+    TransformComponent:
+      Translate: [0, 74.99381, 20.524714]
+      Rotation: [-29.755302, 40.819, 0]
+      Scale: [1, 1, 1]
+    CharControllerComponent:
+      Radius: 0.5
+      Height: 1
+      StepOffset: 0.25
+      MoveSpeed: 10
+      EyeOffset: 1.7
+      SpawnPosition: [0, 0, 10]
+      SpawnYaw: 0
+    ScriptComponent:
+      Script: 14704046587874091873
+  - InfoComponent:
+      UID: 10145581065260743113
+      Name: Sun
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [-60, 0, 0]
+      Scale: [1, 1, 1]
+    DirectLightComponent:
+      Intensity: 1
+      Radiance: [2.5, 2.5, 2.5]
+  - InfoComponent:
+      UID: 6435379083777956930
+      Name: Baseplate
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RigidBodyComponent:
+      Density: 1
+      Dynamic: false
+    ColliderComponent:
+      DynamicFriction: 0.5
+      StaticFriction: 0.5
+      Restitution: 0.1
+      Type: MESH
+    ModelComponent:
+      Material: 11419910753267748133
+      Model: 1109415623942669668
+  - InfoComponent:
+      UID: 15994935350224694717
+      Name: Sky
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SkyboxComponent:
+      Skybox: 6001118698633456113

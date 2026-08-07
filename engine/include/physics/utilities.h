@@ -20,7 +20,6 @@ namespace flow {
         MESH
     };
 
-
     struct Collider3D {
         FLOW_INLINE Collider3D(const Collider3D&) = default;
         FLOW_INLINE Collider3D() = default;
@@ -31,6 +30,7 @@ namespace flow {
         float Restitution = 0.1f;
 
         PxConvexMeshGeometry Mesh;
+        PxTriangleMeshGeometry TriangleMesh;
         PxShape* Shape = nullptr;
         ColliderType Type = BOX;
     };

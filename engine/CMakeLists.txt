@@ -42,7 +42,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     lua::lua
     yaml-cpp::yaml-cpp
     magic_enum::magic_enum
-    # imgui::imgui
     physx::physx
 )
 

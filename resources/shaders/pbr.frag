@@ -262,9 +262,11 @@ void main() {
 
     if (dot(result, BLOOM_THRESHOLD) > 1.0) {
         out_brightness = vec4(result, 1.0);
-    } else {
+    } else
+        {
         out_brightness = vec4(0.0, 0.0, 0.0, 1.0);
     }
 
     out_fragment = vec4(result, 1.0);
+    // out_fragment = vec4(1.0, 0.0, 0.0, 1.0);
 }

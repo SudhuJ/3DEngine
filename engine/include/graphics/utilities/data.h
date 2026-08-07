@@ -47,7 +47,7 @@ namespace flow {
         float Yaw = 0.00f;
         float VerticalVelocity = 0.0f;
         glm::vec3 MoveIntent = {0.0f, 0.0f, 0.0f};
-        glm::vec3 SpawnPosition = {0.0f, 0.0f, 10.0f};
+        glm::vec3 SpawnPosition = {0.0f, 25.0f, 00.0f};
         float SpawnYaw = 0.0f;
     };
 
@@ -67,6 +67,8 @@ namespace flow {
         Texture MetallicMap;
         Texture OcclusionMap;
         Texture NormalMap;
+
+        std::string AlbedoPath;
     };
 
     struct pointLight {

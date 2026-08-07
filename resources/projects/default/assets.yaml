@@ -1,0 +1,42 @@
+ASSETS:
+  - UID: 1109415623942669668
+    Type: MODEL
+    Name: baseplate
+    Source: resources/models/baseplate.fbx
+    Properties:
+      HasJoints: false
+  - UID: 14704046587874091873
+    Type: SCRIPT
+    Name: testScript
+    Source: resources/scripts/testScript.lua
+  - UID: 6001118698633456113
+    Type: SKYBOX
+    Name: sky
+    Source: resources/textures/sky.hdr
+    Properties:
+      IsHDR: true
+      FlipV: true
+      Size: 2048
+  - UID: 6758045866492203610
+    Type: TEXTURE
+    Name: texture_01
+    Source: resources/placeholders/textures/PNG/Dark/texture_01.png
+    Properties:
+      IsHDR: false
+      FlipV: true
+  - UID: 11419910753267748133
+    Type: MATERIAL
+    Name: Baseplate
+    Source: Baseplate
+    Properties:
+      RoughnessMap: 0
+      OcclusionMap: 0
+      EmissiveMap: 0
+      MetallicMap: 0
+      AlbedoMap: 6758045866492203610
+      NormalMap: 0
+      Roughness: 0.5
+      Occlusion: 1
+      Metallic: 0.2
+      Emissive: [0, 0, 0]
+      Albedo: [1, 1, 1]

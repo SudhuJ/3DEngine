@@ -10,7 +10,8 @@
 #include "auxillaries/ECS.h"
 #include "auxillaries/assets.h"
 #include "auxillaries/serializer.h"
-// #include "interface.h"
+#include "auxillaries/project.h"
+
 
 namespace flow {
     struct appInterface;
@@ -30,6 +31,7 @@ namespace flow {
             Renderer = std::make_unique<graphicsRenderer>(1280, 720);
             Assets = std::make_unique<AssetRegistry>();
             Serializer = std::make_unique<DataSerializer>();
+            Project = std::make_unique<ProjectManager>(Assets.get(), &Scene, Serializer.get());
 
             deltaTime = 0.0;
         }
@@ -41,14 +43,31 @@ namespace flow {
             Layers.clear();
         }
 
+        FLOW_INLINE void EnsureMeshCollider(Entity& entity) {
+            if (!entity.template Has<colliderComponent>()) return;
+            auto& collider = entity.template Get<colliderComponent>().Collider;
+            if (collider.Type != MESH || collider.TriangleMesh.triangleMesh) return;
+
+            if (entity.template Has<modelComponent>()) {
+                auto& model = entity.template Get<modelComponent>();
+                auto& asset = Assets->Get<ModelAsset>(model.Model);        // AssetRegistry access
+                auto* sm = static_cast<staticModel*>(asset.Data.get());
+                if (sm && !sm->GetMeshes().empty()) {
+                    collider.TriangleMesh = Physics->CookTriangleMesh(sm->GetMeshes()[0].Data);
+                }
+            }
+        }
+
         FLOW_INLINE void StartRuntime() {
             // Scene.view<skyboxComponent>().each([this](auto id, auto& comp) {
             //     auto& skybox = Assets->Get<SkyboxAsset>(comp.Sky);
             //     auto skyTex = std::make_shared<texture2D>(skybox.EnvMap);
             //     Renderer->InitSkybox(skybox.Data, skyTex, skybox.Size);
             // });
+
             Scene.view<rigidBodyComponent>().each([this](auto id, auto& comp) {
                 Entity ent(&Scene, id);
+                EnsureMeshCollider(ent);
                 Physics->AddRigidBody(ent);
             });
             Scene.view<charControllerComponent>().each([this](auto id, auto& comp) {
@@ -112,6 +131,8 @@ namespace flow {
         std::unique_ptr<ScriptContext> Scripts;
         std::unique_ptr<AssetRegistry> Assets;
         std::unique_ptr<DataSerializer> Serializer;
+        std::unique_ptr<ProjectManager> Project;
+
         entityRegistry Scene;
         double deltaTime = 0.0;
         engineMode Mode = engineMode::EDITOR;
