@@ -73,7 +73,15 @@ struct MenuBarWindow : IWidget {
                                     mtlAsset->AlbedoMap = texAsset->UID;
                                     mtlAsset->Data.AlbedoMap = texAsset->Data;
                                 }
+                                auto linkMap = [&](const std::string& src, AssetID& id) {
+                                    if (src.empty()) return;
+                                    id = assets.AddTexture(RandomU64(), src)->UID;
+                                };
+                                linkMap(mat->AOPath,     mtlAsset->OcclusionMap);
+                                linkMap(mat->RoughPath,  mtlAsset->RoughnessMap);
+                                linkMap(mat->MetalPath,  mtlAsset->MetallicMap);
                             }
+                            assets.ResolveMaterialTextures();
                         }
                     }
                     ImGui::EndMenu();

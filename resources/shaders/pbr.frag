@@ -26,16 +26,12 @@ struct Material {
 
     sampler2D AlbedoMap;
     sampler2D EmissiveMap;
-    sampler2D OcclusionMap;
-    sampler2D RoughnessMap;
-    sampler2D MetallicMap;
     sampler2D NormalMap;
+    sampler2D ORM;
 
     bool useAlbedoMap;
     bool useEmissiveMap;
-    bool useOcclusionMap;
-    bool useRoughnessMap;
-    bool useMetallicMap;
+    bool useORM;
     bool useNormalMap;
 };
 
@@ -235,18 +231,12 @@ void main() {
     if (u_material.useEmissiveMap) {
         emissive *= texture(u_material.EmissiveMap, v_UVs).rgb;
     }
-    if (u_material.useOcclusionMap) {
-        occlusion *= texture(u_material.OcclusionMap, v_UVs).r;
+    if (u_material.useORM) {
+        vec3 orm = texture(u_material.ORM, v_UVs).rgb;
+        occlusion *= orm.r;
+        roughness *= orm.g;
+        metallic *= orm.b;
     }
-    if (u_material.useRoughnessMap) {
-        roughness *= texture(u_material.RoughnessMap, v_UVs).r;
-    }
-    if (u_material.useMetallicMap) {
-        metallic *= texture(u_material.MetallicMap, v_UVs).r;
-    }
-
-    // test
-    // metallic += 1000000;
 
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
@@ -262,11 +252,10 @@ void main() {
 
     if (dot(result, BLOOM_THRESHOLD) > 1.0) {
         out_brightness = vec4(result, 1.0);
-    } else
-        {
+    }
+    else {
         out_brightness = vec4(0.0, 0.0, 0.0, 1.0);
     }
 
     out_fragment = vec4(result, 1.0);
-    // out_fragment = vec4(1.0, 0.0, 0.0, 1.0);
 }

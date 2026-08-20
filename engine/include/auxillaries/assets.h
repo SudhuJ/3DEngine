@@ -180,17 +180,26 @@ namespace flow {
             for (auto& [uid, asset] : m_Registry[TypeID<MaterialAsset>()]) {
                 if (uid == EMPTY_ASSET) continue;
                     auto& mtl = static_cast<MaterialAsset&>(*asset);
-                    auto resolve = [&](AssetID id, Texture& dest) {
+                    std::string aoPath, roughPath, metalPath;
+                    auto resolve = [&](AssetID id, Texture& dest, std::string* pathOut = nullptr) {
                         if (id != EMPTY_ASSET && texMap.count(id)) {
-                            dest = static_cast<TextureAsset&>(*texMap[id]).Data;
+                            auto& texAsset = static_cast<TextureAsset&>(*texMap[id]);
+                            dest = texAsset.Data;
+                            if (pathOut) {
+                                *pathOut = texAsset.Source;
+                            }
                         }
                     };
                 resolve(mtl.AlbedoMap, mtl.Data.AlbedoMap);
                 resolve(mtl.NormalMap, mtl.Data.NormalMap);
-                resolve(mtl.MetallicMap, mtl.Data.MetallicMap);
                 resolve(mtl.EmissiveMap, mtl.Data.EmissiveMap);
-                resolve(mtl.OcclusionMap, mtl.Data.OcclusionMap);
-                resolve(mtl.RoughnessMap, mtl.Data.RoughnessMap);
+                resolve(mtl.MetallicMap, mtl.Data.MetallicMap, &metalPath);
+                resolve(mtl.OcclusionMap, mtl.Data.OcclusionMap, &aoPath);
+                resolve(mtl.RoughnessMap, mtl.Data.RoughnessMap, &roughPath);
+                mtl.Data.ORM = texture2D::PackORM(aoPath, roughPath, metalPath);
+                mtl.Data.MetallicMap.reset();
+                mtl.Data.OcclusionMap.reset();
+                mtl.Data.RoughnessMap.reset();
             }
         }
 

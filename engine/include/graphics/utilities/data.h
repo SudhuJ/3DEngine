@@ -67,8 +67,12 @@ namespace flow {
         Texture MetallicMap;
         Texture OcclusionMap;
         Texture NormalMap;
+        Texture ORM;
 
         std::string AlbedoPath;
+        std::string AOPath;
+        std::string RoughPath;
+        std::string MetalPath;
     };
 
     struct pointLight {

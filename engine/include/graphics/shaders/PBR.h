@@ -30,19 +30,15 @@ namespace flow {
             u_ndirectLights = glGetUniformLocation(m_FragmentProgID, "u_ndirectLights");
             u_nspotLights = glGetUniformLocation(m_FragmentProgID, "u_nspotLights");
 
-            u_RoughnessMap = glGetUniformLocation(m_FragmentProgID, "u_material.RoughnessMap");
-            u_OcclusionMap = glGetUniformLocation(m_FragmentProgID, "u_material.OcclusionMap");
             u_EmissiveMap = glGetUniformLocation(m_FragmentProgID, "u_material.EmissiveMap");
-            u_MetallicMap = glGetUniformLocation(m_FragmentProgID, "u_material.MetallicMap");
             u_AlbedoMap = glGetUniformLocation(m_FragmentProgID, "u_material.AlbedoMap");
             u_NormalMap = glGetUniformLocation(m_FragmentProgID, "u_material.NormalMap");
+            u_ORM = glGetUniformLocation(m_FragmentProgID, "u_material.ORM");
 
-            u_useRoughnessMap = glGetUniformLocation(m_FragmentProgID, "u_material.useRoughnessMap");
-            u_useOcclusionMap = glGetUniformLocation(m_FragmentProgID, "u_material.useOcclusionMap");
             u_useEmissiveMap = glGetUniformLocation(m_FragmentProgID, "u_material.useEmissiveMap");
-            u_useMetallicMap = glGetUniformLocation(m_FragmentProgID, "u_material.useMetallicMap");
             u_useAlbedoMap = glGetUniformLocation(m_FragmentProgID, "u_material.useAlbedoMap");
             u_useNormalMap = glGetUniformLocation(m_FragmentProgID, "u_material.useNormalMap");
+            u_useORM = glGetUniformLocation(m_FragmentProgID, "u_material.useORM");
 
             for (int32_t i = 0; i < kMaxLights; i++) {
                 std::string idx = std::to_string(i);
@@ -188,32 +184,18 @@ namespace flow {
                     material.NormalMap->Use(m_FragmentProgID, u_NormalMap, unit++);
                 }
 
-                useMap = material.MetallicMap != nullptr;
-                glProgramUniform1i(m_FragmentProgID, u_useMetallicMap, useMap);
-                if (material.MetallicMap) {
-                    material.MetallicMap->Use(m_FragmentProgID, u_MetallicMap, unit++);
-                }
-
                 useMap = material.EmissiveMap != nullptr;
                 glProgramUniform1i(m_FragmentProgID, u_useEmissiveMap, useMap);
                 if (material.EmissiveMap) {
                     material.EmissiveMap->Use(m_FragmentProgID, u_EmissiveMap, unit++);
                 }
 
-                useMap = material.OcclusionMap != nullptr;
-                glProgramUniform1i(m_FragmentProgID, u_useOcclusionMap, useMap);
-                if (material.OcclusionMap) {
-                    material.OcclusionMap->Use(m_FragmentProgID, u_OcclusionMap, unit++);
-                }
-
-                useMap = material.RoughnessMap != nullptr;
-                glProgramUniform1i(m_FragmentProgID, u_useRoughnessMap, useMap);
-                if (material.RoughnessMap) {
-                    material.RoughnessMap->Use(m_FragmentProgID, u_RoughnessMap, unit++);
+                useMap = material.ORM != nullptr;
+                glProgramUniform1i(m_FragmentProgID, u_useORM, useMap);
+                if (material.ORM) {
+                    material.ORM->Use(m_FragmentProgID, u_ORM, unit++);
                 }
             }
-
-
 
         static constexpr int32_t kMaxLights = 10;
 
@@ -228,19 +210,15 @@ namespace flow {
         int32_t u_Emissive = 0;
         int32_t u_Occlusion = 0;
 
-        int32_t u_useRoughnessMap = 0;
-        int32_t u_useOcclusionMap = 0;
         int32_t u_useEmissiveMap = 0;
-        int32_t u_useMetallicMap = 0;
         int32_t u_useAlbedoMap = 0;
         int32_t u_useNormalMap = 0;
+        int32_t u_useORM = 0;
 
-        int32_t u_RoughnessMap = 0;
-        int32_t u_OcclusionMap = 0;
         int32_t u_EmissiveMap = 0;
-        int32_t u_MetallicMap = 0;
         int32_t u_AlbedoMap = 0;
         int32_t u_NormalMap = 0;
+        int32_t u_ORM = 0;
 
         int32_t u_viewPos = 0;
         int32_t u_IrradianceMap = 0;

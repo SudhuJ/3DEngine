@@ -108,21 +108,29 @@ namespace flow {
                     if (ai_mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, val) == AI_SUCCESS) {
                         mat.Roughness = val;
                     }
-                    auto loadTex = [&](aiTextureType type, Texture& dest) {
+                    auto loadTex = [&](aiTextureType type, Texture& dest, std::string* pathOut = nullptr) {
                         aiString path;
                         if (ai_mat->GetTexture(type, 0, &path) == AI_SUCCESS) {
                             std::filesystem::path modelDir = std::filesystem::path(m_ModelPath).parent_path();
                             std::string fullPath = (modelDir / std::filesystem::path(path.C_Str())).string();
+                            if (pathOut) {
+                                *pathOut = fullPath;
+                            }
                             if (type == aiTextureType_DIFFUSE) mat.AlbedoPath = fullPath;
                             dest = std::make_shared<texture2D>(fullPath, false, true);
                         }
                     };
                     loadTex(aiTextureType_DIFFUSE, mat.AlbedoMap);
                     loadTex(aiTextureType_NORMALS, mat.NormalMap);
-                    loadTex(aiTextureType_METALNESS, mat.MetallicMap);
-                    loadTex(aiTextureType_DIFFUSE_ROUGHNESS, mat.RoughnessMap);
-                    loadTex(aiTextureType_AMBIENT_OCCLUSION, mat.OcclusionMap);
                     loadTex(aiTextureType_EMISSIVE, mat.EmissiveMap);
+                    loadTex(aiTextureType_METALNESS, mat.MetallicMap, &mat.MetalPath);
+                    loadTex(aiTextureType_DIFFUSE_ROUGHNESS, mat.RoughnessMap, &mat.RoughPath);
+                    loadTex(aiTextureType_AMBIENT_OCCLUSION, mat.OcclusionMap, &mat.AOPath);
+
+                    mat.ORM = texture2D::PackORM(mat.AOPath, mat.RoughPath, mat.MetalPath);
+                    mat.OcclusionMap.reset();
+                    mat.RoughnessMap.reset();
+                    mat.MetallicMap.reset();
                 }
 
                 auto mesh = std::make_shared<shadedMesh>(data);
