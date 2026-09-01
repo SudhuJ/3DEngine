@@ -1,6 +1,6 @@
 ENTITIES:
   - InfoComponent:
-      UID: 4873456053569544652
+      UID: 14724626958824769023
       Name: Entity
       Parent: 0
     CameraComponent:
@@ -8,8 +8,8 @@ ENTITIES:
       FarPlane: 500
       FOV: 0.7853982
     TransformComponent:
-      Translate: [0, 74.99381, 20.524714]
-      Rotation: [-29.755302, 40.819, 0]
+      Translate: [2.0821543, 21.375282, 16.070961]
+      Rotation: [-23.250725, 16.719473, 0]
       Scale: [1, 1, 1]
     CharControllerComponent:
       Radius: 0.5
@@ -17,12 +17,12 @@ ENTITIES:
       StepOffset: 0.25
       MoveSpeed: 10
       EyeOffset: 1.7
-      SpawnPosition: [0, 0, 10]
+      SpawnPosition: [0, 0, 0]
       SpawnYaw: 0
     ScriptComponent:
-      Script: 14704046587874091873
+      Script: 9606493691823000283
   - InfoComponent:
-      UID: 10145581065260743113
+      UID: 17436926011964721711
       Name: Sun
       Parent: 0
     TransformComponent:
@@ -30,16 +30,16 @@ ENTITIES:
       Rotation: [-60, 0, 0]
       Scale: [1, 1, 1]
     DirectLightComponent:
-      Intensity: 1
+      Intensity: 2.5
       Radiance: [2.5, 2.5, 2.5]
   - InfoComponent:
-      UID: 6435379083777956930
-      Name: Baseplate
+      UID: 16371777942608409861
+      Name: Ground
       Parent: 0
     TransformComponent:
-      Translate: [0, 0, 0]
+      Translate: [0, -10, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [50, 1, 50]
     RigidBodyComponent:
       Density: 1
       Dynamic: false
@@ -47,12 +47,12 @@ ENTITIES:
       DynamicFriction: 0.5
       StaticFriction: 0.5
       Restitution: 0.1
-      Type: MESH
+      Type: BOX
     ModelComponent:
-      Material: 11419910753267748133
-      Model: 1109415623942669668
+      Material: 13728391840059578969
+      Model: 8824547919755058592
   - InfoComponent:
-      UID: 15994935350224694717
+      UID: 5297804899225160860
       Name: Sky
       Parent: 0
     TransformComponent:
@@ -60,4 +60,4 @@ ENTITIES:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SkyboxComponent:
-      Skybox: 6001118698633456113
+      Skybox: 8813668148643194449

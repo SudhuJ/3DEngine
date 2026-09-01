@@ -1,5 +1,5 @@
 # flowEngine
-
+![flowEngine editor screenshot](resources/icons/screengrab.png)
 A C++17 game engine built with CMake and Conan.
 
 Shared `engine` library + thin executables: `editor` (ImGui dockspace UI) and `game` (headless launcher). OpenGL 4.5, EnTT ECS, PhysX 4.x, Lua (sol2), YAML serialization.
