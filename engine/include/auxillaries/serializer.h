@@ -182,89 +182,93 @@ namespace flow {
 
                 for (const auto& node : nodes) {
                     entityID entity = scene.create();
+                    try {
+                        if (auto d = node["InfoComponent"]) {
+                            auto& info = scene.emplace<infoComponent>(entity);
+                            info.Parent = d["Parent"].as<AssetID>(info.Parent);
+                            info.Name = d["Name"].as<std::string>(info.Name);
+                            info.UID = d["UID"].as<AssetID>(info.UID);
+                        }
 
-                    if (auto d = node["InfoComponent"]) {
-                        auto& info = scene.emplace<infoComponent>(entity);
-                        info.Parent = d["Parent"].as<AssetID>();
-                        info.Name = d["Name"].as<std::string>();
-                        info.UID = d["UID"].as<AssetID>();
+                        if (auto d = node["CameraComponent"]) {
+                            auto& camera = scene.emplace<cameraComponent>(entity).Camera;
+                            camera.nearPlane = d["NearPlane"].as<float>(camera.nearPlane);
+                            camera.farPlane  = d["FarPlane"].as<float>(camera.farPlane);
+                            camera.FOV       = d["FOV"].as<float>(camera.FOV);
+                        }
+
+                        if (auto d = node["TransformComponent"]) {
+                            auto& transform = scene.emplace<transformComponent>(entity).Transform;
+                            transform.Translate = d["Translate"].as<glm::vec3>(transform.Translate);
+                            transform.Rotate    = d["Rotation"].as<glm::vec3>(transform.Rotate);
+                            transform.Scale     = d["Scale"].as<glm::vec3>(transform.Scale);
+                        }
+
+                        if (auto d = node["RigidBodyComponent"]) {
+                            auto& body = scene.emplace<rigidBodyComponent>(entity).RigidBody;
+                            body.Density = d["Density"].as<float>(body.Density);
+                            body.Dynamic = d["Dynamic"].as<bool>(body.Dynamic);
+                        }
+
+                        if (auto d = node["ColliderComponent"]) {
+                            auto& collider = scene.emplace<colliderComponent>(entity).Collider;
+                            collider.DynamicFriction = d["DynamicFriction"].as<float>(collider.DynamicFriction);
+                            collider.StaticFriction  = d["StaticFriction"].as<float>(collider.StaticFriction);
+                            collider.Restitution     = d["Restitution"].as<float>(collider.Restitution);
+                            const auto name = d["Type"].as<std::string>("BOX");
+                            auto opt = magic_enum::enum_cast<ColliderType>(name);
+                            if (opt.has_value()) { collider.Type = opt.value(); }
+                        }
+
+                        if (auto d = node["CharControllerComponent"]) {
+                            auto& control = scene.emplace<charControllerComponent>(entity);
+                            control.Controller.Radius     = d["Radius"].as<float>(control.Controller.Radius);
+                            control.Controller.Height     = d["Height"].as<float>(control.Controller.Height);
+                            control.Controller.StepOffset = d["StepOffset"].as<float>(control.Controller.StepOffset);
+                            control.Controller.MoveSpeed  = d["MoveSpeed"].as<float>(control.Controller.MoveSpeed);
+                            control.Controller.EyeOffset  = d["EyeOffset"].as<float>(control.Controller.EyeOffset);
+                            control.Controller.SpawnPosition = d["SpawnPosition"].as<glm::vec3>(glm::vec3(0.0f, 0.0f, 10.0f));
+                            control.Controller.SpawnYaw      = d["SpawnYaw"].as<float>(0.0f);
+                        }
+
+                        if (auto d = node["ModelComponent"]) {
+                            auto& comp = scene.emplace<modelComponent>(entity);
+                            comp.Material = d["Material"].as<AssetID>(comp.Material);
+                            comp.Model    = d["Model"].as<AssetID>(comp.Model);
+                        }
+
+                        if (auto d = node["ScriptComponent"]) {
+                            auto& comp = scene.emplace<scriptComponent>(entity);
+                            comp.Script = d["Script"].as<AssetID>(comp.Script);
+                        }
+
+                        if (auto d = node["SkyboxComponent"]) {
+                            auto& comp = scene.emplace<skyboxComponent>(entity);
+                            comp.Sky = d["Skybox"].as<AssetID>(comp.Sky);
+                        }
+
+                        if (auto d = node["DirectLightComponent"]) {
+                            auto& light = scene.emplace<directLightComponent>(entity).Light;
+                            light.Radiance  = d["Radiance"].as<glm::vec3>(light.Radiance);
+                            light.Intensity = d["Intensity"].as<float>(light.Intensity);
+                        }
+
+                        if (auto d = node["PointLightComponent"]) {
+                            auto& light = scene.emplace<pointLightComponent>(entity).Light;
+                            light.Radiance  = d["Radiance"].as<glm::vec3>(light.Radiance);
+                            light.Intensity = d["Intensity"].as<float>(light.Intensity);
+                        }
+
+                        if (auto d = node["SpotLightComponent"]) {
+                            auto& light = scene.emplace<spotLightComponent>(entity).Light;
+                            light.Radiance  = d["Radiance"].as<glm::vec3>(light.Radiance);
+                            light.Intensity = d["Intensity"].as<float>(light.Intensity);
+                            light.Falloff   = d["Falloff"].as<float>(light.Falloff);
+                            light.Cutoff    = d["Cutoff"].as<float>(light.Cutoff);
+                        }
                     }
-
-                    if (auto d = node["CameraComponent"]) {
-                        auto& camera = scene.emplace<cameraComponent>(entity).Camera;
-                        camera.nearPlane = d["NearPlane"].as<float>();
-                        camera.farPlane  = d["FarPlane"].as<float>();
-                        camera.FOV       = d["FOV"].as<float>();
-                    }
-
-                    if (auto d = node["TransformComponent"]) {
-                        auto& transform = scene.emplace<transformComponent>(entity).Transform;
-                        transform.Translate = d["Translate"].as<glm::vec3>();
-                        transform.Rotate    = d["Rotation"].as<glm::vec3>();
-                        transform.Scale     = d["Scale"].as<glm::vec3>();
-                    }
-
-                    if (auto d = node["RigidBodyComponent"]) {
-                        auto& body = scene.emplace<rigidBodyComponent>(entity).RigidBody;
-                        body.Density = d["Density"].as<float>();
-                        body.Dynamic = d["Dynamic"].as<bool>();
-                    }
-
-                    if (auto d = node["ColliderComponent"]) {
-                        auto& collider = scene.emplace<colliderComponent>(entity).Collider;
-                        collider.DynamicFriction = d["DynamicFriction"].as<float>();
-                        collider.StaticFriction  = d["StaticFriction"].as<float>();
-                        collider.Restitution     = d["Restitution"].as<float>();
-                        const auto name = d["Type"].as<std::string>();
-                        auto opt = magic_enum::enum_cast<ColliderType>(name);
-                        if (opt.has_value()) { collider.Type = opt.value(); }
-                    }
-
-                    if (auto d = node["CharControllerComponent"]) {
-                        auto& control = scene.emplace<charControllerComponent>(entity);
-                        control.Controller.Radius     = d["Radius"].as<float>();
-                        control.Controller.Height     = d["Height"].as<float>();
-                        control.Controller.StepOffset = d["StepOffset"].as<float>();
-                        control.Controller.MoveSpeed  = d["MoveSpeed"].as<float>();
-                        control.Controller.EyeOffset  = d["EyeOffset"].as<float>();
-                        control.Controller.SpawnPosition = d["SpawnPosition"].as<glm::vec3>(glm::vec3(0.0f, 0.0f, 10.0f));
-                        control.Controller.SpawnYaw      = d["SpawnYaw"].as<float>(0.0f);
-                    }
-
-                    if (auto d = node["ModelComponent"]) {
-                        auto& comp = scene.emplace<modelComponent>(entity);
-                        comp.Material = d["Material"].as<AssetID>();
-                        comp.Model    = d["Model"].as<AssetID>();
-                    }
-
-                    if (auto d = node["ScriptComponent"]) {
-                        auto& comp = scene.emplace<scriptComponent>(entity);
-                        comp.Script = d["Script"].as<AssetID>();
-                    }
-
-                    if (auto d = node["SkyboxComponent"]) {
-                        auto& comp = scene.emplace<skyboxComponent>(entity);
-                        comp.Sky = d["Skybox"].as<AssetID>();
-                    }
-
-                    if (auto d = node["DirectLightComponent"]) {
-                        auto& light = scene.emplace<directLightComponent>(entity).Light;
-                        light.Radiance  = d["Radiance"].as<glm::vec3>();
-                        light.Intensity = d["Intensity"].as<float>();
-                    }
-
-                    if (auto d = node["PointLightComponent"]) {
-                        auto& light = scene.emplace<pointLightComponent>(entity).Light;
-                        light.Radiance  = d["Radiance"].as<glm::vec3>();
-                        light.Intensity = d["Intensity"].as<float>();
-                    }
-
-                    if (auto d = node["SpotLightComponent"]) {
-                        auto& light = scene.emplace<spotLightComponent>(entity).Light;
-                        light.Radiance  = d["Radiance"].as<glm::vec3>();
-                        light.Intensity = d["Intensity"].as<float>();
-                        light.Falloff   = d["Falloff"].as<float>();
-                        light.Cutoff    = d["Cutoff"].as<float>();
+                    catch (YAML::Exception& e) {
+                        FLOW_ERROR("Partially loaded entity: {}", e.what());
                     }
                 }
             }
@@ -289,7 +293,11 @@ namespace flow {
 
         // ── Asset serialize ──
 
-        FLOW_INLINE void Serialize(AssetRegistry& registry, const std::string& path) {
+        // sourceMap lets callers (e.g. export) rewrite Source without mutating the registry
+        using SourceMapper = std::function<std::string(const Asset&)>;
+
+        FLOW_INLINE void Serialize(AssetRegistry& registry, const std::string& path,
+                const SourceMapper& sourceMap = nullptr) {
             YAML::Emitter emitter;
 
             emitter << YAML::BeginMap;
@@ -304,7 +312,8 @@ namespace flow {
                             emitter << YAML::Key << "UID"    << YAML::Value << asset->UID;
                             emitter << YAML::Key << "Type"   << YAML::Value << typeName;
                             emitter << YAML::Key << "Name"   << YAML::Value << asset->Name;
-                            emitter << YAML::Key << "Source" << YAML::Value << asset->Source;
+                            emitter << YAML::Key << "Source" << YAML::Value
+                                << (sourceMap ? sourceMap(*asset) : asset->Source);
 
                             if (asset->Type == AssetType::MATERIAL) {
                                 auto mtl = static_cast<MaterialAsset*>(asset);
@@ -369,71 +378,75 @@ namespace flow {
         // ── Asset deserialize ──
 
         FLOW_INLINE void Deserialize(AssetRegistry& registry, const std::string& path) {
+            YAML::Node root;
             try {
-                const auto root = YAML::LoadFile(path);
-                const auto nodes = root["ASSETS"];
-
-                for (const auto& node : nodes) {
-                    Asset* asset = nullptr;
-                    const auto props  = node["Properties"];
-                    const auto uid    = node["UID"].as<AssetID>();
-                    const auto name   = node["Name"].as<std::string>();
-                    const auto source = node["Source"].as<std::string>();
-
-                    const auto typeName = node["Type"].as<std::string>();
-                    const auto opt = magic_enum::enum_cast<AssetType>(typeName);
-                    const auto type = (opt.has_value()) ? opt.value() : AssetType::UNKNOWN;
-
-                    if (type == AssetType::MATERIAL && props) {
-                        auto mtlAsset = registry.AddMaterial(uid, source);
-
-                        mtlAsset->RoughnessMap = props["RoughnessMap"].as<AssetID>();
-                        mtlAsset->OcclusionMap = props["OcclusionMap"].as<AssetID>();
-                        mtlAsset->EmissiveMap  = props["EmissiveMap"].as<AssetID>();
-                        mtlAsset->MetallicMap  = props["MetallicMap"].as<AssetID>();
-                        mtlAsset->AlbedoMap    = props["AlbedoMap"].as<AssetID>();
-                        mtlAsset->NormalMap    = props["NormalMap"].as<AssetID>();
-
-                        mtlAsset->Data.Emissive  = props["Emissive"].as<glm::vec3>();
-                        mtlAsset->Data.Occlusion = props["Occlusion"].as<float>();
-                        mtlAsset->Data.Roughness = props["Roughness"].as<float>();
-                        mtlAsset->Data.Metallic  = props["Metallic"].as<float>();
-                        mtlAsset->Data.Albedo    = props["Albedo"].as<glm::vec3>();
-
-                        asset = (Asset*)mtlAsset.get();
-                    }
-                    else if (type == AssetType::TEXTURE && props) {
-                        bool isHDR = props["IsHDR"].as<bool>();
-                        bool flipV = props["FlipV"].as<bool>();
-                        asset = (Asset*)registry.AddTexture(uid, source, isHDR, flipV).get();
-                    }
-                    else if (type == AssetType::SKYBOX && props) {
-                        bool isHDR   = props["IsHDR"].as<bool>();
-                        bool flipV   = props["FlipV"].as<bool>();
-                        auto size    = props["Size"].as<int32_t>();
-                        asset = (Asset*)registry.AddSkybox(uid, source, size, isHDR, flipV).get();
-                    }
-                    else if (type == AssetType::MODEL && props) {
-                        bool hasJoints = props["HasJoints"].as<bool>();
-                        asset = (Asset*)registry.AddModel(uid, source, hasJoints).get();
-                    }
-                    else if (type == AssetType::SCRIPT) {
-                        asset = (Asset*)registry.AddScript(uid, source).get();
-                    }
-                    else if (type == AssetType::SCENE) {
-                        asset = (Asset*)registry.AddScene(uid, source).get();
-                    }
-                    else {
-                        FLOW_ERROR("Failed to deserialize asset: invalid type");
-                        return;
-                    }
-
-                    asset->Source = source;
-                    asset->Name   = name;
-                }
+                root = YAML::LoadFile(path);
             }
             catch (YAML::Exception& e) {
-                FLOW_ERROR("Failed to Deserialize Assets.");
+                FLOW_ERROR("Failed to Deserialize Assets from {}: {}", path, e.what());
+                return;
+            }
+
+            for (const auto& node : root["ASSETS"]) {
+                try {
+                    const auto props    = node["Properties"];
+                    const auto uid      = node["UID"].as<AssetID>();
+                    const auto source   = node["Source"].as<std::string>("");
+                    const auto typeName = node["Type"].as<std::string>("");
+                    const auto opt  = magic_enum::enum_cast<AssetType>(typeName);
+                    const auto type = (opt.has_value()) ? opt.value() : AssetType::UNKNOWN;
+
+                    Asset* asset = nullptr;
+                    if (type == AssetType::MATERIAL) {
+                        auto mtlAsset = registry.AddMaterial(uid, source);
+                        if (props) {
+                            mtlAsset->RoughnessMap = props["RoughnessMap"].as<AssetID>(EMPTY_ASSET);
+                            mtlAsset->OcclusionMap = props["OcclusionMap"].as<AssetID>(EMPTY_ASSET);
+                            mtlAsset->EmissiveMap  = props["EmissiveMap"].as<AssetID>(EMPTY_ASSET);
+                            mtlAsset->MetallicMap  = props["MetallicMap"].as<AssetID>(EMPTY_ASSET);
+                            mtlAsset->AlbedoMap    = props["AlbedoMap"].as<AssetID>(EMPTY_ASSET);
+                            mtlAsset->NormalMap    = props["NormalMap"].as<AssetID>(EMPTY_ASSET);
+
+                            auto& data = mtlAsset->Data;
+                            data.Emissive  = props["Emissive"].as<glm::vec3>(data.Emissive);
+                            data.Occlusion = props["Occlusion"].as<float>(data.Occlusion);
+                            data.Roughness = props["Roughness"].as<float>(data.Roughness);
+                            data.Metallic  = props["Metallic"].as<float>(data.Metallic);
+                            data.Albedo    = props["Albedo"].as<glm::vec3>(data.Albedo);
+                        }
+                        asset = mtlAsset.get();
+                    }
+                    else if (type == AssetType::TEXTURE) {
+                        bool isHDR = props ? props["IsHDR"].as<bool>(false) : false;
+                        bool flipV = props ? props["FlipV"].as<bool>(true) : true;
+                        asset = registry.AddTexture(uid, source, isHDR, flipV).get();
+                    }
+                    else if (type == AssetType::SKYBOX) {
+                        bool isHDR = props ? props["IsHDR"].as<bool>(true) : true;
+                        bool flipV = props ? props["FlipV"].as<bool>(true) : true;
+                        auto size  = props ? props["Size"].as<int32_t>(2048) : 2048;
+                        asset = registry.AddSkybox(uid, source, size, isHDR, flipV).get();
+                    }
+                    else if (type == AssetType::MODEL) {
+                        bool hasJoints = props ? props["HasJoints"].as<bool>(false) : false;
+                        asset = registry.AddModel(uid, source, hasJoints).get();
+                    }
+                    else if (type == AssetType::SCRIPT) {
+                        asset = registry.AddScript(uid, source).get();
+                    }
+                    else if (type == AssetType::SCENE) {
+                        asset = registry.AddScene(uid, source).get();
+                    }
+                    else {
+                        FLOW_ERROR("Skipping asset {}: invalid type '{}'", uid, typeName);
+                        continue;
+                    }
+
+                    asset->Name = node["Name"].as<std::string>(asset->Name);
+                }
+                catch (YAML::Exception& e) {
+                    FLOW_ERROR("Skipping malformed asset entry in {}: {}", path, e.what());
+                }
             }
         }
     };

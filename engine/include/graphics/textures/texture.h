@@ -14,7 +14,15 @@ namespace flow {
         }
 
         FLOW_INLINE ~texture2D() {
-            glDeleteTextures(1, &m_ID);
+            if (m_ID) glDeleteTextures(1, &m_ID);
+        }
+
+        // own a GL name: copying double-deletes it
+        texture2D(const texture2D&) = delete;
+        texture2D& operator=(const texture2D&) = delete;
+
+        FLOW_INLINE bool Valid() const {
+            return m_ID != 0u;
         }
 
         FLOW_INLINE bool Load(const std::string& path, bool isHDR = false, bool flipY = true) {

@@ -18,11 +18,15 @@ void main() {
     int nSamples = 0;
     float sampleDelta = 0.025;
 
+    // read the mip whose texel spacing matches the sample spacing (no aliasing, fewer cache misses)
+    float texelAngle = (PI / 2.0) / float(textureSize(u_cubemap, 0).x);
+    float lod = max(log2(sampleDelta / texelAngle), 0.0);
+
     for (float theta = 0.0; theta < PI / 2; theta += sampleDelta) {
         for (float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta) {
             vec3 tangentSample = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;
-            irradiance += texture(u_cubemap, sampleVec).rgb * cos(theta) * sin(theta);
+            irradiance += textureLod(u_cubemap, sampleVec, lod).rgb * cos(theta) * sin(theta);
             nSamples++;
         }
     }

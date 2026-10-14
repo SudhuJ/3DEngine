@@ -1,4 +1,10 @@
 ASSETS:
+  - UID: 1701320450691888409
+    Type: MODEL
+    Name: suzanne
+    Source: resources/models/suzanne.fbx
+    Properties:
+      HasJoints: false
   - UID: 8824547919755058592
     Type: MODEL
     Name: cube
@@ -17,6 +23,22 @@ ASSETS:
       IsHDR: true
       FlipV: true
       Size: 2048
+  - UID: 4483927028873359094
+    Type: MATERIAL
+    Name: suzanne
+    Source: suzanne
+    Properties:
+      RoughnessMap: 0
+      OcclusionMap: 0
+      EmissiveMap: 0
+      MetallicMap: 0
+      AlbedoMap: 0
+      NormalMap: 0
+      Roughness: 0.5
+      Occlusion: 1
+      Metallic: 0.2
+      Emissive: [0, 0, 0]
+      Albedo: [0.8, 0.8, 0.8]
   - UID: 13728391840059578969
     Type: MATERIAL
     Name: Ground

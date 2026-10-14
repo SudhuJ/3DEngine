@@ -108,29 +108,36 @@ namespace flow {
                     if (ai_mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, val) == AI_SUCCESS) {
                         mat.Roughness = val;
                     }
-                    auto loadTex = [&](aiTextureType type, Texture& dest, std::string* pathOut = nullptr) {
+                    // record texture paths only; the asset registry owns the GPU textures
+                    auto findTex = [&](aiTextureType type, std::string& pathOut) {
                         aiString path;
-                        if (ai_mat->GetTexture(type, 0, &path) == AI_SUCCESS) {
-                            std::filesystem::path modelDir = std::filesystem::path(m_ModelPath).parent_path();
-                            std::string fullPath = (modelDir / std::filesystem::path(path.C_Str())).string();
-                            if (pathOut) {
-                                *pathOut = fullPath;
-                            }
-                            if (type == aiTextureType_DIFFUSE) mat.AlbedoPath = fullPath;
-                            dest = std::make_shared<texture2D>(fullPath, false, true);
+                        if (ai_mat->GetTexture(type, 0, &path) != AI_SUCCESS) return;
+                        std::string texPath(path.C_Str());
+                        if (!texPath.empty() && texPath[0] == '*') {
+                            FLOW_WARN("Embedded texture {} in {} is not supported.", texPath, m_ModelPath);
+                            return;
                         }
+                        std::replace(texPath.begin(), texPath.end(), '\\', '/');
+                        std::filesystem::path modelDir = std::filesystem::path(m_ModelPath).parent_path();
+                        std::filesystem::path fullPath = modelDir / std::filesystem::path(texPath);
+                        if (!std::filesystem::exists(fullPath)) {
+                            // authoring tools often store absolute paths; fall back to the file name
+                            fullPath = modelDir / std::filesystem::path(texPath).filename();
+                        }
+                        if (!std::filesystem::exists(fullPath)) {
+                            FLOW_WARN("Texture {} referenced by {} not found.", texPath, m_ModelPath);
+                            return;
+                        }
+                        pathOut = fullPath.lexically_normal().string();
                     };
-                    loadTex(aiTextureType_DIFFUSE, mat.AlbedoMap);
-                    loadTex(aiTextureType_NORMALS, mat.NormalMap);
-                    loadTex(aiTextureType_EMISSIVE, mat.EmissiveMap);
-                    loadTex(aiTextureType_METALNESS, mat.MetallicMap, &mat.MetalPath);
-                    loadTex(aiTextureType_DIFFUSE_ROUGHNESS, mat.RoughnessMap, &mat.RoughPath);
-                    loadTex(aiTextureType_AMBIENT_OCCLUSION, mat.OcclusionMap, &mat.AOPath);
-
-                    mat.ORM = texture2D::PackORM(mat.AOPath, mat.RoughPath, mat.MetalPath);
-                    mat.OcclusionMap.reset();
-                    mat.RoughnessMap.reset();
-                    mat.MetallicMap.reset();
+                    findTex(aiTextureType_DIFFUSE, mat.AlbedoPath);
+                    if (mat.AlbedoPath.empty()) findTex(aiTextureType_BASE_COLOR, mat.AlbedoPath);
+                    findTex(aiTextureType_NORMALS, mat.NormalPath);
+                    findTex(aiTextureType_EMISSIVE, mat.EmissivePath);
+                    findTex(aiTextureType_METALNESS, mat.MetalPath);
+                    findTex(aiTextureType_DIFFUSE_ROUGHNESS, mat.RoughPath);
+                    findTex(aiTextureType_AMBIENT_OCCLUSION, mat.AOPath);
+                    if (mat.AOPath.empty()) findTex(aiTextureType_LIGHTMAP, mat.AOPath);
                 }
 
                 auto mesh = std::make_shared<shadedMesh>(data);
@@ -311,6 +318,17 @@ namespace flow {
             std::shared_ptr<Animator> m_Animator;
             uint32_t m_JointCount = 0u;
     };
+
+    // cheap pre-scan used on import to pick static vs skeletal loading
+    FLOW_INLINE bool ModelHasJoints(const std::string& path) {
+        Assimp::Importer importer;
+        const aiScene* ai_Scene = importer.ReadFile(path, 0);
+        if (!ai_Scene) return false;
+        for (uint32_t i = 0; i < ai_Scene->mNumMeshes; i++) {
+            if (ai_Scene->mMeshes[i]->HasBones()) return true;
+        }
+        return false;
+    }
 
     using model3D = std::shared_ptr<Model>;
     using animator3D = std::shared_ptr<Animator>;

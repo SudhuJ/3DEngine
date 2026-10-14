@@ -47,7 +47,7 @@ namespace flow {
         int32_t Size = 2048;
         bool isHDR = true;
         bool flipV = true;
-        texture2D EnvMap;
+        Texture EnvMap;
         Skybox Data;
     };
 
@@ -117,10 +117,37 @@ namespace flow {
             AddEmpty<SceneAsset>();
         }
 
+        // directory that relative asset sources are resolved against first (the open project)
+        std::string BaseDir;
+
+        FLOW_INLINE std::string Resolve(const std::string& src) const {
+            if (src.empty()) return src;
+            std::filesystem::path path(src);
+            if (path.is_absolute()) return src;
+            if (!BaseDir.empty()) {
+                auto local = std::filesystem::path(BaseDir) / path;
+                if (std::filesystem::exists(local)) return local.string();
+            }
+            return src;
+        }
+
+        template <typename T>
+        FLOW_INLINE std::shared_ptr<T> FindBySource(const std::string& src) {
+            for (auto& [uid, asset] : m_Registry[TypeID<T>()]) {
+                if (uid != EMPTY_ASSET && asset->Source == src) {
+                    return std::static_pointer_cast<T>(asset);
+                }
+            }
+            return nullptr;
+        }
+
         FLOW_INLINE auto AddSkybox(AssetID uid, const std::string& src, int32_t size,
             bool isHDR = true, bool flipV = true) {
             auto asset = std::make_shared<SkyboxAsset>();
-            asset->EnvMap.Load(src, isHDR, flipV);
+            auto envMap = std::make_shared<texture2D>();
+            if (envMap->Load(Resolve(src), isHDR, flipV)) {
+                asset->EnvMap = envMap;
+            }
             asset->Type = AssetType::SKYBOX;
             asset->isHDR = isHDR;
             asset->flipV = flipV;
@@ -132,7 +159,11 @@ namespace flow {
         FLOW_INLINE auto AddTexture(AssetID uid, const std::string& src,
                 bool isHDR = false, bool flipV = true) {
             auto asset = std::make_shared<TextureAsset>();
-            asset->Data = std::make_shared<texture2D>(src, isHDR, flipV);
+            auto texture = std::make_shared<texture2D>();
+            // keep the entry on failure so references still resolve and re-save
+            if (texture->Load(Resolve(src), isHDR, flipV)) {
+                asset->Data = texture;
+            }
             asset->Type = AssetType::TEXTURE;
             asset->isHDR = isHDR;
             asset->flipV = flipV;
@@ -145,10 +176,10 @@ namespace flow {
             asset->HasJoints = hasJoints;
             asset->Type = AssetType::MODEL;
             if (hasJoints) {
-                asset->Data = std::make_shared<skeletalModel>(src);
+                asset->Data = std::make_shared<skeletalModel>(Resolve(src));
             }
             else {
-                asset->Data = std::make_shared<staticModel>(src);
+                asset->Data = std::make_shared<staticModel>(Resolve(src));
             }
             Add(uid, src, asset);
             return asset;
@@ -175,31 +206,42 @@ namespace flow {
             return asset;
         }
 
-        FLOW_INLINE void ResolveMaterialTextures() {
+        FLOW_INLINE void ResolveMaterialTextures(MaterialAsset& mtl) {
             auto& texMap = m_Registry[TypeID<TextureAsset>()];
+            std::string aoPath, roughPath, metalPath;
+            auto resolve = [&](AssetID id, Texture& dest, std::string* pathOut = nullptr) {
+                dest.reset();
+                if (id != EMPTY_ASSET && texMap.count(id)) {
+                    auto& texAsset = static_cast<TextureAsset&>(*texMap[id]);
+                    dest = texAsset.Data;
+                    if (pathOut && texAsset.Data) {
+                        *pathOut = Resolve(texAsset.Source);
+                    }
+                }
+            };
+            resolve(mtl.AlbedoMap, mtl.Data.AlbedoMap);
+            resolve(mtl.NormalMap, mtl.Data.NormalMap);
+            resolve(mtl.EmissiveMap, mtl.Data.EmissiveMap);
+            resolve(mtl.MetallicMap, mtl.Data.MetallicMap, &metalPath);
+            resolve(mtl.OcclusionMap, mtl.Data.OcclusionMap, &aoPath);
+            resolve(mtl.RoughnessMap, mtl.Data.RoughnessMap, &roughPath);
+            mtl.Data.ORM = texture2D::PackORM(aoPath, roughPath, metalPath);
+            mtl.Data.MetallicMap.reset();
+            mtl.Data.OcclusionMap.reset();
+            mtl.Data.RoughnessMap.reset();
+        }
+
+        FLOW_INLINE void ResolveMaterialTextures(AssetID uid) {
+            auto& mtlMap = m_Registry[TypeID<MaterialAsset>()];
+            if (uid != EMPTY_ASSET && mtlMap.count(uid)) {
+                ResolveMaterialTextures(static_cast<MaterialAsset&>(*mtlMap[uid]));
+            }
+        }
+
+        FLOW_INLINE void ResolveMaterialTextures() {
             for (auto& [uid, asset] : m_Registry[TypeID<MaterialAsset>()]) {
                 if (uid == EMPTY_ASSET) continue;
-                    auto& mtl = static_cast<MaterialAsset&>(*asset);
-                    std::string aoPath, roughPath, metalPath;
-                    auto resolve = [&](AssetID id, Texture& dest, std::string* pathOut = nullptr) {
-                        if (id != EMPTY_ASSET && texMap.count(id)) {
-                            auto& texAsset = static_cast<TextureAsset&>(*texMap[id]);
-                            dest = texAsset.Data;
-                            if (pathOut) {
-                                *pathOut = texAsset.Source;
-                            }
-                        }
-                    };
-                resolve(mtl.AlbedoMap, mtl.Data.AlbedoMap);
-                resolve(mtl.NormalMap, mtl.Data.NormalMap);
-                resolve(mtl.EmissiveMap, mtl.Data.EmissiveMap);
-                resolve(mtl.MetallicMap, mtl.Data.MetallicMap, &metalPath);
-                resolve(mtl.OcclusionMap, mtl.Data.OcclusionMap, &aoPath);
-                resolve(mtl.RoughnessMap, mtl.Data.RoughnessMap, &roughPath);
-                mtl.Data.ORM = texture2D::PackORM(aoPath, roughPath, metalPath);
-                mtl.Data.MetallicMap.reset();
-                mtl.Data.OcclusionMap.reset();
-                mtl.Data.RoughnessMap.reset();
+                ResolveMaterialTextures(static_cast<MaterialAsset&>(*asset));
             }
         }
 

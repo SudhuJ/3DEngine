@@ -1,4 +1,6 @@
 #version 450 core
+// required for separable programs (strictly enforced by NVIDIA)
+out gl_PerVertex { vec4 gl_Position; };
 layout(location = 0) in vec4 a_quad;
 layout(location = 0) out vec2 v_UVs;
 

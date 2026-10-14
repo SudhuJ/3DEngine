@@ -8,6 +8,7 @@ int main(int32_t argc, char* argv[]) {
         std::string arg(argv[i]);
         if (arg == "--project" && i + 1 < argc) projectPath = argv[++i];
     }
+    if (projectPath.empty()) projectPath = FLOW_PROJECTS_DIR "/default";
 
     auto app = new Application(engineMode::STANDALONE_GAME, projectPath);
     app->runContext();

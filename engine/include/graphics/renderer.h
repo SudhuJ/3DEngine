@@ -27,6 +27,9 @@ namespace flow {
                 FLOW_CRITICAL("Failed to initialize GLAD.");
                 exit(EXIT_FAILURE);
             }
+            FLOW_INFO("Renderer: {} (OpenGL {})",
+                reinterpret_cast<const char*>(glGetString(GL_RENDERER)),
+                reinterpret_cast<const char*>(glGetString(GL_VERSION)));
             m_Frame = std::make_unique<frameBuffer>(width, height);
             m_Final = std::make_unique<finalShader>("resources/shaders/final.vert", "resources/shaders/final.frag", width, height);
             m_PBR = std::make_unique<PBRShader>("resources/shaders/pbr.vert", "resources/shaders/pbr.frag");
@@ -56,13 +59,24 @@ namespace flow {
         }
 
         FLOW_INLINE void InitSkybox(Skybox& sky, Texture& texture, int32_t size) {
-            sky.m_CubeMap = m_SkyMap->Generate(texture, m_SkyboxMesh, size);
-            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 256);
-            sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, 256);
+            // release maps from a previous init so re-opening a project doesn't leak
+            uint32_t old[] = { sky.m_CubeMap, sky.IrradianceMap, sky.PrefilteredMap, sky.BRDFMap };
+            for (auto id : old) {
+                if (id) glDeleteTextures(1, &id);
+            }
+            // a cube face can't hold more detail than ~1/4 of the equirect width;
+            // anything bigger only multiplies GPU work (and stalls the desktop)
+            int32_t faceSize = 32;
+            while (faceSize * 2 <= std::min(size, texture->getWidth() / 4)) faceSize *= 2;
+
+            sky.m_CubeMap = m_SkyMap->Generate(texture, m_SkyboxMesh, faceSize);
+            sky.IrradianceMap = m_Irrad->Generate(sky.m_CubeMap, m_SkyboxMesh, 32);
+            sky.PrefilteredMap = m_Prefil->Generate(sky.m_CubeMap, m_SkyboxMesh, std::min(faceSize, 256));
             sky.BRDFMap = m_BRDF->Generate(128);
         }
 
         FLOW_INLINE void Animate(model3D model, float dt) {
+            if (!model) return;
             if (auto joints = model->Animate(dt)) {
                 m_PBR->setJoints(*joints);
             }
@@ -86,11 +100,16 @@ namespace flow {
         }
 
         FLOW_INLINE void beginShadowPass(const glm::vec3& lightDir) {
-            float nearPlane = 1.0f;
-            float farPlane = 10.0f;
-            auto proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
-            auto view = glm::lookAt(lightDir, glm::vec3(0.0f, 0.0f, 0.0f),
-                glm::vec3(0.0f, 1.0f, 0.0f));
+            // light camera sits back along the light direction, looking at the origin,
+            // with a box large enough for the scene (it does not follow the camera yet)
+            const float distance = 20.0f;
+            const float extent = 25.0f;
+            float nearPlane = 0.1f;
+            float farPlane = 60.0f;
+            glm::vec3 dir = glm::normalize(lightDir);
+            glm::vec3 up = (glm::abs(dir.y) > 0.99f) ? glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+            auto proj = glm::ortho(-extent, extent, -extent, extent, nearPlane, farPlane);
+            auto view = glm::lookAt(-dir * distance, glm::vec3(0.0f), up);
 
             auto lightSpaceMatrix = glm::mat4(proj * view);
             m_PBR->Bind();

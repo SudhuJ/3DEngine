@@ -5,6 +5,8 @@
 #include "controls/transform.h"
 #include "controls/directlight.h"
 #include "controls/spawn.h"
+#include "controls/model.h"
+#include "controls/rigidbody.h"
 
 #include "context/context.h"
 #include "context/widget.h"
@@ -13,6 +15,9 @@ struct InspectorWindow : IWidget {
     FLOW_INLINE InspectorWindow(GuiContext* context) : IWidget(context) {
         m_Widgets.push_back(context->CreateWidget<InfoControl>());
         m_Widgets.push_back(context->CreateWidget<TransformControl>());
+        m_Widgets.push_back(context->CreateWidget<ModelControl>());
+        m_Widgets.push_back(context->CreateWidget<RigidBodyControl>());
+        m_Widgets.push_back(context->CreateWidget<ColliderControl>());
         m_Widgets.push_back(context->CreateWidget<CameraControl>());
         m_Widgets.push_back(context->CreateWidget<DirectLightControl>());
         m_Widgets.push_back(context->CreateWidget<SpawnControl>());

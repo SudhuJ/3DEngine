@@ -203,7 +203,8 @@ float computeShadow() {
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
             float depth = texture(u_DepthMap, coords.xy + vec2(x, y) * pixelSize).r;
-            shadow += (position.z - bias) > depth ? 0.7 : 0.0;
+            // coords.z is in the depth map's [0,1] range (position.z is NDC [-1,1])
+            shadow += (coords.z - bias) > depth ? 0.7 : 0.0;
         }
     }
     shadow /= 9.0;

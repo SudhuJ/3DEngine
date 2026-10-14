@@ -35,6 +35,13 @@ namespace flow {
             u_NormalMap = glGetUniformLocation(m_FragmentProgID, "u_material.NormalMap");
             u_ORM = glGetUniformLocation(m_FragmentProgID, "u_material.ORM");
 
+            // fixed units: unused 2D samplers must not default to unit 0, where the
+            // irradiance cubemap lives (mixed sampler types on one unit fail the draw)
+            glProgramUniform1i(m_FragmentProgID, u_AlbedoMap, kAlbedoUnit);
+            glProgramUniform1i(m_FragmentProgID, u_NormalMap, kNormalUnit);
+            glProgramUniform1i(m_FragmentProgID, u_EmissiveMap, kEmissiveUnit);
+            glProgramUniform1i(m_FragmentProgID, u_ORM, kORMUnit);
+
             u_useEmissiveMap = glGetUniformLocation(m_FragmentProgID, "u_material.useEmissiveMap");
             u_useAlbedoMap = glGetUniformLocation(m_FragmentProgID, "u_material.useAlbedoMap");
             u_useNormalMap = glGetUniformLocation(m_FragmentProgID, "u_material.useNormalMap");
@@ -169,35 +176,40 @@ namespace flow {
                 glProgramUniform3fv(m_FragmentProgID, u_Albedo, 1, glm::value_ptr(material.Albedo));
                 glProgramUniform3fv(m_FragmentProgID, u_Emissive, 1, glm::value_ptr(material.Emissive));
 
-                int32_t unit = 4;
                 bool useMap = false;
 
                 useMap = material.AlbedoMap != nullptr;
                 glProgramUniform1i(m_FragmentProgID, u_useAlbedoMap, useMap);
                 if (material.AlbedoMap) {
-                    material.AlbedoMap->Use(m_FragmentProgID, u_AlbedoMap, unit++);
+                    material.AlbedoMap->Use(m_FragmentProgID, u_AlbedoMap, kAlbedoUnit);
                 }
 
                 useMap = material.NormalMap != nullptr;
                 glProgramUniform1i(m_FragmentProgID, u_useNormalMap, useMap);
                 if (material.NormalMap) {
-                    material.NormalMap->Use(m_FragmentProgID, u_NormalMap, unit++);
+                    material.NormalMap->Use(m_FragmentProgID, u_NormalMap, kNormalUnit);
                 }
 
                 useMap = material.EmissiveMap != nullptr;
                 glProgramUniform1i(m_FragmentProgID, u_useEmissiveMap, useMap);
                 if (material.EmissiveMap) {
-                    material.EmissiveMap->Use(m_FragmentProgID, u_EmissiveMap, unit++);
+                    material.EmissiveMap->Use(m_FragmentProgID, u_EmissiveMap, kEmissiveUnit);
                 }
 
                 useMap = material.ORM != nullptr;
                 glProgramUniform1i(m_FragmentProgID, u_useORM, useMap);
                 if (material.ORM) {
-                    material.ORM->Use(m_FragmentProgID, u_ORM, unit++);
+                    material.ORM->Use(m_FragmentProgID, u_ORM, kORMUnit);
                 }
             }
 
         static constexpr int32_t kMaxLights = 10;
+
+        // units 0-3 are the IBL + shadow maps (see setEnvMaps)
+        static constexpr int32_t kAlbedoUnit   = 4;
+        static constexpr int32_t kNormalUnit   = 5;
+        static constexpr int32_t kEmissiveUnit = 6;
+        static constexpr int32_t kORMUnit      = 7;
 
         int32_t u_Model = 0;
         int32_t u_View = 0;

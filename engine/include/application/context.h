@@ -51,20 +51,84 @@ namespace flow {
             if (entity.template Has<modelComponent>()) {
                 auto& model = entity.template Get<modelComponent>();
                 auto& asset = Assets->Get<ModelAsset>(model.Model);        // AssetRegistry access
-                auto* sm = static_cast<staticModel*>(asset.Data.get());
+                auto* sm = dynamic_cast<staticModel*>(asset.Data.get());
                 if (sm && !sm->GetMeshes().empty()) {
                     collider.TriangleMesh = Physics->CookTriangleMesh(sm->GetMeshes()[0].Data);
                 }
             }
         }
 
-        FLOW_INLINE void StartRuntime() {
-            // Scene.view<skyboxComponent>().each([this](auto id, auto& comp) {
-            //     auto& skybox = Assets->Get<SkyboxAsset>(comp.Sky);
-            //     auto skyTex = std::make_shared<texture2D>(skybox.EnvMap);
-            //     Renderer->InitSkybox(skybox.Data, skyTex, skybox.Size);
-            // });
+        // (re)builds cubemap + IBL maps for every skybox in the scene
+        FLOW_INLINE void InitSkyboxes() {
+            Scene.view<skyboxComponent>().each([this](auto id, auto& comp) {
+                auto& skybox = Assets->Get<SkyboxAsset>(comp.Sky);
+                if (!skybox.EnvMap) {
+                    FLOW_WARN("Skybox '{}' has no environment map.", skybox.Name);
+                    return;
+                }
+                Renderer->InitSkybox(skybox.Data, skybox.EnvMap, skybox.Size);
+            });
+        }
 
+        // stops play mode, swaps in the project at dir and rebuilds GPU-side scene state
+        FLOW_INLINE flow::Project* OpenProject(const std::string& dir) {
+            if (Mode == engineMode::PLAY_IN_EDITOR) {
+                StopRuntime();
+            }
+            auto* project = Project->OpenProject(dir);
+            InitSkyboxes();
+            return project;
+        }
+
+        FLOW_INLINE void SpawnDefaultScene() {
+            // Skybox
+            auto skyAsset = Assets->AddSkybox(RandomU64(), "resources/textures/sky.hdr", 2048);
+            Entity skyEnt(&Scene);
+            skyEnt.Attach<infoComponent>().Name = "Sky";
+            skyEnt.Attach<skyboxComponent>().Sky = skyAsset->UID;
+            skyEnt.Attach<transformComponent>();
+
+            // Ground plane
+            auto planeModel = Assets->AddModel(RandomU64(), "resources/models/cube.fbx");
+            auto planeMat   = Assets->AddMaterial(RandomU64(), "Ground");
+            planeMat->Data.Albedo = glm::vec3(0.25f, 0.0f, 1.0f);
+
+            Entity plane(&Scene);
+            plane.Attach<infoComponent>().Name = "Ground";
+            plane.Attach<rigidBodyComponent>();
+            auto& pCollider = plane.Attach<colliderComponent>().Collider;
+            pCollider.Type = BOX;
+            pCollider.StaticFriction = 0.5f;
+            pCollider.DynamicFriction = 0.5f;
+            auto& pModel = plane.Attach<modelComponent>();
+            pModel.Model    = planeModel->UID;
+            pModel.Material = planeMat->UID;
+            auto& pT = plane.Attach<transformComponent>().Transform;
+            pT.Translate = glm::vec3(0.0f, -1.0f, 0.0f);
+            pT.Scale = glm::vec3(100.0f, 1.0f, 100.0f);
+
+            // Direct light
+            Entity sun(&Scene);
+            sun.Attach<infoComponent>().Name = "Sun";
+            auto& sunLight = sun.Attach<directLightComponent>().Light;
+            sunLight.Intensity = 2.5f;
+            sunLight.Radiance  = glm::vec3(2.5f);
+            auto& sunT = sun.Attach<transformComponent>().Transform;
+            sunT.Rotate = glm::vec3(-60.0f, 0.0f, 0.0f);
+
+            // Movement + PlayerCharacter
+            auto scriptAsset = Assets->AddScript(RandomU64(), "resources/scripts/testScript.lua");
+            Entity player(&Scene);
+            player.Attach<infoComponent>();
+            player.Attach<cameraComponent>();
+            player.Attach<scriptComponent>().Script = scriptAsset->UID;
+            auto& playerCC = player.Attach<charControllerComponent>().Controller;
+            playerCC.SpawnPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+            auto& playerT = player.Attach<transformComponent>().Transform;
+            playerT.Translate = playerCC.SpawnPosition;
+        }
+
+        FLOW_INLINE void StartRuntime() {
             Scene.view<rigidBodyComponent>().each([this](auto id, auto& comp) {
                 Entity ent(&Scene, id);
                 EnsureMeshCollider(ent);
@@ -80,7 +144,7 @@ namespace flow {
             });
             Scene.view<scriptComponent>().each([this](auto id, auto& comp) {
                 auto& script = Assets->Get<ScriptAsset>(comp.Script);
-                auto name = Scripts->loadScript(script.Source);
+                auto name = Scripts->loadScript(Assets->Resolve(script.Source));
                 Entity ent(&Scene, id);
                 Scripts->attachScript(ent, name);
             });

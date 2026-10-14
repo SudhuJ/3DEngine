@@ -1,0 +1,79 @@
+ASSETS:
+  - UID: 11207376348710405434
+    Type: MODEL
+    Name: walking
+    Source: assets/walking.fbx
+    Properties:
+      HasJoints: true
+  - UID: 8824547919755058592
+    Type: MODEL
+    Name: cube
+    Source: assets/cube.fbx
+    Properties:
+      HasJoints: false
+  - UID: 1701320450691888409
+    Type: MODEL
+    Name: suzanne
+    Source: assets/suzanne.fbx
+    Properties:
+      HasJoints: false
+  - UID: 9606493691823000283
+    Type: SCRIPT
+    Name: testScript
+    Source: assets/testScript.lua
+  - UID: 8813668148643194449
+    Type: SKYBOX
+    Name: sky
+    Source: assets/sky.hdr
+    Properties:
+      IsHDR: true
+      FlipV: true
+      Size: 2048
+  - UID: 11662876083696015502
+    Type: MATERIAL
+    Name: walking
+    Source: walking
+    Properties:
+      RoughnessMap: 0
+      OcclusionMap: 0
+      EmissiveMap: 0
+      MetallicMap: 0
+      AlbedoMap: 0
+      NormalMap: 0
+      Roughness: 0.5
+      Occlusion: 1
+      Metallic: 0.2
+      Emissive: [0, 0, 0]
+      Albedo: [1, 1, 1]
+  - UID: 13728391840059578969
+    Type: MATERIAL
+    Name: Ground
+    Source: Ground
+    Properties:
+      RoughnessMap: 0
+      OcclusionMap: 0
+      EmissiveMap: 0
+      MetallicMap: 0
+      AlbedoMap: 0
+      NormalMap: 0
+      Roughness: 0.5
+      Occlusion: 1
+      Metallic: 0.2
+      Emissive: [0, 0, 0]
+      Albedo: [0.25, 0, 1]
+  - UID: 4483927028873359094
+    Type: MATERIAL
+    Name: suzanne
+    Source: suzanne
+    Properties:
+      RoughnessMap: 0
+      OcclusionMap: 0
+      EmissiveMap: 0
+      MetallicMap: 0
+      AlbedoMap: 0
+      NormalMap: 0
+      Roughness: 0.5
+      Occlusion: 1
+      Metallic: 0.2
+      Emissive: [0, 0, 0]
+      Albedo: [0.8, 0.8, 0.8]

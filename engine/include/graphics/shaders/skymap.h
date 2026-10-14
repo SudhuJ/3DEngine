@@ -27,13 +27,15 @@ namespace flow {
             uint32_t cubeMap = 0;
 
             glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &cubeMap);
-            glTextureStorage2D(cubeMap, 1, GL_RGB16F, size, size);
+            // full mip chain: the irradiance/prefilter passes sample lower mips
+            const int32_t levels = static_cast<int32_t>(std::floor(std::log2(size))) + 1;
+            glTextureStorage2D(cubeMap, levels, GL_RGB16F, size, size);
 
             glTextureParameteri(cubeMap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTextureParameteri(cubeMap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTextureParameteri(cubeMap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
             glTextureParameteri(cubeMap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTextureParameteri(cubeMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTextureParameteri(cubeMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
             uint32_t FBO = 0, RBO = 0;
 
@@ -61,6 +63,7 @@ namespace flow {
             glDeleteRenderbuffers(1, &RBO);
             glDeleteFramebuffers(1, &FBO);
 
+            glGenerateTextureMipmap(cubeMap);
             return cubeMap;
         }
 

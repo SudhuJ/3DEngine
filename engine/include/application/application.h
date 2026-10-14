@@ -114,58 +114,6 @@ namespace flow {
                 sLastTime = currentTime;
             }
 
-            FLOW_INLINE void SpawnDefaultScene() {
-                // Skybox
-                auto skyAsset = m_Context->Assets->AddSkybox(RandomU64(), "resources/textures/sky.hdr", 2048);
-                auto skyEnt = createEntt<Entity>();
-                skyEnt.Attach<infoComponent>().Name = "Sky";
-                skyEnt.Attach<skyboxComponent>().Sky = skyAsset->UID;
-                skyEnt.Attach<transformComponent>();
-
-                // Textured ground plane
-                auto planeModel = m_Context->Assets->AddModel(RandomU64(), "resources/models/cube.fbx");
-                // auto planeTex   = m_Context->Assets->AddTexture(RandomU64(), "resources/placeholders/textures/PNG/Dark/texture_01.png");
-                auto planeMat   = m_Context->Assets->AddMaterial(RandomU64(), "Ground");
-                planeMat->Data.Albedo = glm::vec4(0.25f, 0.0f, 1.0f, 1.0f);
-                // planeMat->Data.AlbedoMap = planeTex->Data;
-                // planeMat->AlbedoMap      = planeTex->UID;
-
-                auto plane = createEntt<Entity>();
-                plane.Attach<infoComponent>().Name = "Ground";
-                plane.Attach<rigidBodyComponent>();
-                auto& pCollider = plane.Attach<colliderComponent>().Collider;
-                pCollider.Type = BOX;
-                pCollider.StaticFriction = 0.5f;
-                pCollider.DynamicFriction = 0.5f;
-                auto& pModel = plane.Attach<modelComponent>();
-                pModel.Model    = planeModel->UID;
-                pModel.Material = planeMat->UID;
-                auto& pT = plane.Attach<transformComponent>().Transform;
-                pT.Translate = glm::vec3(0.0f, -1.0f, 0.0f);
-                pT.Scale = glm::vec3(100.0f, 1.0f, 100.0f);
-
-                // Direct light
-                auto sun = createEntt<Entity>();
-                sun.Attach<infoComponent>().Name = "Sun";
-                auto& sunLight = sun.Attach<directLightComponent>().Light;
-                sunLight.Intensity = 2.5f;
-                sunLight.Radiance  = glm::vec3(2.5f);
-                auto& sunT = sun.Attach<transformComponent>().Transform;
-                sunT.Rotate = glm::vec3(-60.0f, 0.0f, 0.0f);
-
-                // Movement + PlayerCharacter
-                auto scriptAsset = m_Context->Assets->AddScript(RandomU64(), "resources/scripts/testScript.lua");
-                auto player = createEntt<Entity>();
-                player.Attach<infoComponent>();
-                player.Attach<cameraComponent>();
-                player.Attach<charControllerComponent>();
-                player.Attach<scriptComponent>().Script = scriptAsset->UID;
-                auto& playerCC = player.Attach<charControllerComponent>().Controller;
-                playerCC.SpawnPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-                auto& playerT = player.Attach<transformComponent>().Transform;
-                playerT.Translate = playerCC.SpawnPosition;
-            }
-
             FLOW_INLINE void RenderScene() {
                 m_Context->Renderer->setAmbient(glm::vec3(0.0f));
 
@@ -180,6 +128,7 @@ namespace flow {
                 enttView<Entity, modelComponent>([this] (auto entity, auto& comp) {
                     auto& transform = entity.template Get<transformComponent>().Transform;
                     auto& model = m_Context->Assets->Get<ModelAsset>(comp.Model);
+                    if (!model.Data) return;
                     m_Context->Renderer->drawDepth(model.Data, transform);
                 });
                 m_Context->Renderer->endShadowPass();
@@ -225,6 +174,7 @@ namespace flow {
                     auto& transform = entity.template Get<transformComponent>().Transform;
                     auto& material = m_Context->Assets->Get<MaterialAsset>(comp.Material);
                     auto& model = m_Context->Assets->Get<ModelAsset>(comp.Model);
+                    if (!model.Data) return;
 
                     m_Context->Renderer->Animate(model.Data, m_Context->deltaTime);
                     m_Context->Renderer->Draw(model.Data, material.Data, transform);
@@ -240,18 +190,10 @@ namespace flow {
                 m_Context->Renderer->endFrame();
             }
 
-            FLOW_INLINE void InitSkybox() {
-                enttView<Entity, skyboxComponent>([this] (auto entity, auto& comp) {
-                    auto& skybox = m_Context->Assets->Get<SkyboxAsset>(comp.Sky);
-                    auto skyTex = std::make_shared<texture2D>(skybox.EnvMap);
-                    m_Context->Renderer->InitSkybox(skybox.Data, skyTex, skybox.Size);
-                });
-            }
-
             FLOW_INLINE void InitRuntime() {
                 enttView<Entity, scriptComponent>([this] (auto entity, auto& comp) {
                     auto& script = m_Context->Assets->Get<ScriptAsset>(comp.Script);
-                    auto name = m_Context->Scripts->loadScript(script.Source);
+                    auto name = m_Context->Scripts->loadScript(m_Context->Assets->Resolve(script.Source));
                     m_Context->Scripts->attachScript(entity, name);
                 });
 
@@ -269,36 +211,18 @@ namespace flow {
                 });
             }
 
-            FLOW_INLINE void InitSceneRuntime() {
-                InitSkybox();
-                InitRuntime();
-            }
-
             FLOW_INLINE void StartScene() {
-
-                auto* project = m_Context->Project->Current.get();
-                if (!project && !m_StartupProjectPath.empty()) {
-                    project = m_Context->Project->OpenProject(m_StartupProjectPath);
+                // OpenProject loads assets + scene once; it also sets the asset base dir
+                if (!m_StartupProjectPath.empty()) {
+                    m_Context->Project->OpenProject(m_StartupProjectPath);
                 }
-                if (project) {
-                    if (std::filesystem::exists(project->AssetsPath())) {
-                        m_Context->Serializer->Deserialize(*m_Context->Assets, project->AssetsPath());
-                        m_Context->Assets->ResolveMaterialTextures();
-                    }
-                    if (std::filesystem::exists(project->ScenePath())) {
-                        m_Context->Serializer->Deserialize(m_Context->Scene, project->ScenePath());
-                    }
+                if (m_Context->Scene.view<infoComponent>().empty()) {
+                    m_Context->SpawnDefaultScene();
                 }
-                if (m_Context->Scene.storage<entityID>().empty()) {
-                    SpawnDefaultScene();
-                }
+                m_Context->InitSkyboxes();
                 if (m_Context->Mode == engineMode::STANDALONE_GAME) {
-                    InitSceneRuntime();
+                    InitRuntime();
                     glfwSetInputMode(GetWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                }
-                else {
-                    InitSkybox();
-
                 }
             }
 
@@ -365,7 +289,7 @@ namespace flow {
                     if (!comp.RigidBody.actor) return;
                     auto& transform = entity.template Get<transformComponent>().Transform;
                     auto pose = comp.RigidBody.actor->getGlobalPose();
-                    glm::quat rot(pose.q.x, pose.q.y, pose.q.z, pose.q.w);
+                    glm::quat rot(pose.q.w, pose.q.x, pose.q.y, pose.q.z);    // glm order is (w, x, y, z)
                     transform.Rotate = glm::degrees(glm::eulerAngles(rot));
                     transform.Translate = PxToVec3(pose.p);
                 });

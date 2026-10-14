@@ -1,37 +1,25 @@
 ENTITIES:
   - InfoComponent:
-      UID: 14724626958824769023
-      Name: Entity
-      Parent: 0
-    CameraComponent:
-      NearPlane: 0.3
-      FarPlane: 500
-      FOV: 0.7853982
-    TransformComponent:
-      Translate: [2.0821543, 21.375282, 16.070961]
-      Rotation: [-23.250725, 16.719473, 0]
-      Scale: [1, 1, 1]
-    CharControllerComponent:
-      Radius: 0.5
-      Height: 1
-      StepOffset: 0.25
-      MoveSpeed: 10
-      EyeOffset: 1.7
-      SpawnPosition: [0, 0, 0]
-      SpawnYaw: 0
-    ScriptComponent:
-      Script: 9606493691823000283
-  - InfoComponent:
-      UID: 17436926011964721711
-      Name: Sun
+      UID: 10294633895082531569
+      Name: suzanne
       Parent: 0
     TransformComponent:
       Translate: [0, 0, 0]
-      Rotation: [-60, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.1, 0.1, 0.1]
+    ModelComponent:
+      Material: 4483927028873359094
+      Model: 1701320450691888409
+  - InfoComponent:
+      UID: 5297804899225160860
+      Name: Sky
+      Parent: 0
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    DirectLightComponent:
-      Intensity: 2.5
-      Radiance: [2.5, 2.5, 2.5]
+    SkyboxComponent:
+      Skybox: 8813668148643194449
   - InfoComponent:
       UID: 16371777942608409861
       Name: Ground
@@ -52,12 +40,35 @@ ENTITIES:
       Material: 13728391840059578969
       Model: 8824547919755058592
   - InfoComponent:
-      UID: 5297804899225160860
-      Name: Sky
+      UID: 17436926011964721711
+      Name: Sun
       Parent: 0
     TransformComponent:
       Translate: [0, 0, 0]
-      Rotation: [0, 0, 0]
+      Rotation: [-60, 0, 0]
       Scale: [1, 1, 1]
-    SkyboxComponent:
-      Skybox: 8813668148643194449
+    DirectLightComponent:
+      Intensity: 2.5
+      Radiance: [2.5, 2.5, 2.5]
+  - InfoComponent:
+      UID: 14724626958824769023
+      Name: Entity
+      Parent: 0
+    CameraComponent:
+      NearPlane: 0.3
+      FarPlane: 500
+      FOV: 0.7853982
+    TransformComponent:
+      Translate: [10.156705, 6.740328, 39.925842]
+      Rotation: [-13.983361, 15.752825, 0]
+      Scale: [1, 1, 1]
+    CharControllerComponent:
+      Radius: 0.5
+      Height: 1
+      StepOffset: 0.25
+      MoveSpeed: 10
+      EyeOffset: 1.7
+      SpawnPosition: [0, 0, 0]
+      SpawnYaw: 0
+    ScriptComponent:
+      Script: 9606493691823000283

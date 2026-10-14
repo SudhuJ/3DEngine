@@ -83,7 +83,7 @@ namespace flow {
             bool hasCollider = entity.template Has<colliderComponent>();
 
             PxTransform pose(Vec3ToPx(transform.Translate));
-            glm::quat rot(transform.Rotate);
+            glm::quat rot(glm::radians(transform.Rotate));    // Rotate is stored in degrees
             pose.q = PxQuat(rot.x, rot.y, rot.z, rot.w);
 
             if (entity.template Has<colliderComponent>()) {

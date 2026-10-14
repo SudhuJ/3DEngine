@@ -1,0 +1,4 @@
+name: default
+engine: 0.1.0
+scene: scene.yaml
+assets: assets.yaml

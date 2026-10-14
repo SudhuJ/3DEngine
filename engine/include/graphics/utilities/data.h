@@ -70,6 +70,8 @@ namespace flow {
         Texture ORM;
 
         std::string AlbedoPath;
+        std::string NormalPath;
+        std::string EmissivePath;
         std::string AOPath;
         std::string RoughPath;
         std::string MetalPath;
